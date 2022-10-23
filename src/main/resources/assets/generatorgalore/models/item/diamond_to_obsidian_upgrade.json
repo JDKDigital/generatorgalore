@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:item/upgrade",
+  "textures": {
+    "base": "minecraft:block/obsidian"
+  }
+}

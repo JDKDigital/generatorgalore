@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smithing",
+  "base": {
+    "item": "generatorgalore:gold_to_diamond_upgrade"
+  },
+  "addition": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "result": {
+    "item": "generatorgalore:diamond_to_netherite_upgrade"
+  }
+}

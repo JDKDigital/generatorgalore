@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:block/gold_generator",
+  "textures": {
+    "front": "generatorgalore:block/generator_on"
+  }
+}

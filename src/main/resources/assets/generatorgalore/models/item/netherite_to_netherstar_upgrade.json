@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:item/upgrade",
+  "textures": {
+    "base": "generatorgalore:block/netherstart_generator_top"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:block/diamond_generator",
+  "textures": {
+    "front": "generatorgalore:block/generator_on"
+  }
+}

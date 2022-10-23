@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/generator",
+  "textures": {
+    "top": "generatorgalore:block/netherstart_generator_top",
+    "side": "generatorgalore:block/netherstart_generator_side"
+  }
+}

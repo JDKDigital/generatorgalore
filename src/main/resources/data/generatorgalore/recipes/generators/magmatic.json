@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:obsidian_generator"
+    },
+    "I": {
+      "tag": "forge:ingots/gold"
+    },
+    "R": {
+      "item": "minecraft:lava_bucket"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:magmatic_generator"
+  }
+}

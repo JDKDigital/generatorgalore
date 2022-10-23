@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/generator",
+  "textures": {
+    "top": "minecraft:block/obsidian",
+    "side": "minecraft:block/obsidian"
+  }
+}

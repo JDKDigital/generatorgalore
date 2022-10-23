@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IRI",
+    "IGI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:iron_generator"
+    },
+    "I": {
+      "tag": "forge:ingots/copper"
+    },
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:copper_generator"
+  }
+}

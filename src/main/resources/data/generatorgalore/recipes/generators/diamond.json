@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:gold_generator"
+    },
+    "I": {
+      "tag": "forge:gems/diamond"
+    },
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:diamond_generator"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/generator",
+  "textures": {
+    "top": "generatorgalore:block/magmatic_generator_top",
+    "side": "generatorgalore:block/magmatic_generator_side"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:netherite_generator"
+    },
+    "I": {
+      "item": "minecraft:wither_skeleton_skull"
+    },
+    "R": {
+      "tag": "forge:nether_stars"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:netherstar_generator"
+  }
+}
