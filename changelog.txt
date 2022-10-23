@@ -1,1 +1,9 @@
+1.19.2-0.1.0.1
+
+-- Fixed fuel duplicating when upgrading a generator
+-- Added emerald generator
+
+
 1.19.2-0.1.0.0
+
+-- Initial release
