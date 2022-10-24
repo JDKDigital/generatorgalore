@@ -3,18 +3,12 @@ package cy.jdkdigital.generatorgalore.common.container;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix4f;
-import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
-
-import javax.annotation.Nonnull;
 
 class FluidContainerUtil
 {
@@ -57,9 +51,9 @@ class FluidContainerUtil
 
     public static void renderTiledFluid(PoseStack matrices, AbstractContainerScreen<?> screen, FluidStack stack, int x, int y, int width, int height, int depth) {
         if (!stack.isEmpty()) {
-            var attributes = IClientFluidTypeExtensions.of(stack.getFluid());
+            var attributes = stack.getFluid().getAttributes();
             TextureAtlasSprite fluidSprite = screen.getMinecraft().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(attributes.getStillTexture());
-            setColors(attributes.getTintColor());
+            setColors(attributes.getColor());
             renderTiledTextureAtlas(matrices, screen, fluidSprite, x, y, width, height, depth, false);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         }
@@ -107,7 +101,8 @@ class FluidContainerUtil
         // RenderSystem.enableAlphaTest();
         RenderSystem.enableDepthTest();
         // finish drawing sprites
-        BufferUploader.drawWithShader(builder.end());
+        builder.end();
+        BufferUploader.end(builder);
     }
 
     private static void buildSquare(Matrix4f matrix, BufferBuilder builder, int x1, int x2, int y1, int y2, int z, float u1, float u2, float v1, float v2) {

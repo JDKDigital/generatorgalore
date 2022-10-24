@@ -2,7 +2,6 @@ package cy.jdkdigital.generatorgalore.common.block.entity;
 
 import cy.jdkdigital.generatorgalore.Config;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import cy.jdkdigital.generatorgalore.common.block.Generator;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import cy.jdkdigital.generatorgalore.cap.ControlledEnergyStorage;
 import cy.jdkdigital.generatorgalore.init.ModTags;
@@ -13,13 +12,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,12 +26,14 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     private int tickCounter = 0;
     public int litTime;
     public int litDuration;
+    public double remainder = 0;
     public int fluidId = 0;
     public final GeneratorObject generator;
     private final LazyOptional<ControlledEnergyStorage> energyHandler;
@@ -102,13 +104,13 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         }
         if (++blockEntity.tickCounter % tickRate == 0) {
 
-            int inputPowerAmount = (int) (blockEntity.generator.getGenerationRate() * tickRate);
 
             blockEntity.energyHandler.ifPresent(energyHandler -> {
+                double inputPowerAmount = (blockEntity.generator.getGenerationRate() * tickRate);
                 AtomicBoolean hasConsumedFuel = new AtomicBoolean(false);
 
                 if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_SOLID)) {
-                    blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(itemHandler -> {
+                    blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(itemHandler -> {
                         if (blockEntity.isLit()) {
                             blockEntity.litTime = Math.max(0, blockEntity.litTime - tickRate);
                         }
@@ -138,7 +140,12 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                 }
 
                 if (hasConsumedFuel.get()) {
-                    energyHandler.receiveEnergy(inputPowerAmount, false, true);
+                    // If the generated FE is not divisible by the tickRate, save the excess for next tick
+                    inputPowerAmount = (inputPowerAmount + blockEntity.remainder);
+                    int addedPower = (int) inputPowerAmount;
+                    blockEntity.remainder = inputPowerAmount - addedPower;
+
+                    energyHandler.receiveEnergy(addedPower, false, true);
                     blockEntity.setOn(true);
                 } else {
                     blockEntity.setOn(false);
@@ -195,11 +202,11 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
 
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
             return inventoryHandler.cast();
-        } else if (cap == ForgeCapabilities.FLUID_HANDLER && generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY && generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
             return fluidInventory.cast();
-        } else if (cap == ForgeCapabilities.ENERGY) {
+        } else if (cap == CapabilityEnergy.ENERGY) {
             return energyHandler.cast();
         }
         return super.getCapability(cap, side);
@@ -212,7 +219,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
             for (Direction direction : directions) {
                 BlockEntity te = level.getBlockEntity(worldPosition.relative(direction));
                 if (te != null) {
-                    te.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(recipients::add);
+                    te.getCapability(CapabilityEnergy.ENERGY, direction.getOpposite()).ifPresent(recipients::add);
                 }
             }
             this.recipients = recipients;
@@ -221,7 +228,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
 
     @Override
     public @NotNull Component getName() {
-        return Component.translatable("block." + GeneratorGalore.MODID + "." + generator.getId().getPath().toLowerCase(Locale.ENGLISH) + "_generator");
+        return new TranslatableComponent("block." + GeneratorGalore.MODID + "." + generator.getId().getPath().toLowerCase(Locale.ENGLISH) + "_generator");
     }
 
     @Override

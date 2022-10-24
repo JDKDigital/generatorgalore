@@ -14,7 +14,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-    mappings channel: 'parchment', version: '2022.10.16-1.19.2'
+    mappings channel: 'parchment', version: '2022.09.04-1.18.2'
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
@@ -110,13 +110,21 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forgeversion}"
 
-    compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
-
+    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
     compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
     runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 
-    implementation fg.deobf("curse.maven:jade-324717:3916646")
+    implementation fg.deobf("curse.maven:jade-324717:3803226")
+
+    implementation fg.deobf("curse.maven:applied-energistics-2-223794:4013849")
+    implementation fg.deobf("curse.maven:flywheel-486392:3934664")
+    implementation fg.deobf("curse.maven:create-328085:4007544")
+    implementation fg.deobf("curse.maven:cofh-core-69162:4022665")
+    implementation fg.deobf("curse.maven:thermal-foundation-222880:4022682")
+    implementation fg.deobf("curse.maven:thermal-expansion-69163:4022681")
+    implementation fg.deobf("curse.maven:mekanism-268560:3875976")
+    implementation fg.deobf("curse.maven:mantle-74924:3829975")
+    implementation fg.deobf("curse.maven:tinkers-construct-74072:3998764")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

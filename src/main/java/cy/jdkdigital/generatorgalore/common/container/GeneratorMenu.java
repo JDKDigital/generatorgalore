@@ -10,10 +10,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.Objects;
@@ -62,12 +64,12 @@ public class GeneratorMenu extends AbstractContainer
         {
             @Override
             public int get() {
-                return blockEntity.getCapability(ForgeCapabilities.ENERGY).map(IEnergyStorage::getEnergyStored).orElse(0);
+                return blockEntity.getCapability(CapabilityEnergy.ENERGY).map(IEnergyStorage::getEnergyStored).orElse(0);
             }
 
             @Override
             public void set(int value) {
-                blockEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
+                blockEntity.getCapability(CapabilityEnergy.ENERGY).ifPresent(handler -> {
                     if (handler.getEnergyStored() > 0) {
                         handler.extractEnergy(handler.getEnergyStored(), false);
                     }
@@ -84,7 +86,7 @@ public class GeneratorMenu extends AbstractContainer
             {
                 @Override
                 public int get(int i) {
-                    return i == 0 ? blockEntity.fluidId : blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).map(fluidHandler -> fluidHandler.getFluidInTank(0).getAmount()).orElse(0);
+                    return i == 0 ? blockEntity.fluidId : blockEntity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).map(fluidHandler -> fluidHandler.getFluidInTank(0).getAmount()).orElse(0);
                 }
 
                 @Override
@@ -93,7 +95,7 @@ public class GeneratorMenu extends AbstractContainer
                         case 0:
                             blockEntity.fluidId = value;
                         case 1:
-                            blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluidHandler -> {
+                            blockEntity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).ifPresent(fluidHandler -> {
                                 FluidStack fluid = fluidHandler.getFluidInTank(0);
                                 if (fluid.isEmpty()) {
                                     fluidHandler.fill(new FluidStack(Registry.FLUID.byId(blockEntity.fluidId), value), IFluidHandler.FluidAction.EXECUTE);
@@ -111,7 +113,7 @@ public class GeneratorMenu extends AbstractContainer
             });
         }
 
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> {
+        this.blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(inv -> {
             addSlot(new SlotItemHandler(inv, SLOT_FUEL, 80, 54));
         });
 

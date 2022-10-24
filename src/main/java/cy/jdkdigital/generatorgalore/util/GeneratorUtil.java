@@ -3,7 +3,6 @@ package cy.jdkdigital.generatorgalore.util;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
-import cy.jdkdigital.generatorgalore.common.container.GeneratorScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -13,8 +12,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class GeneratorUtil
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof GeneratorBlockEntity generatorBlockEntity) {
             CompoundTag tag = generatorBlockEntity.saveWithoutMetadata();
-            generatorBlockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
+            generatorBlockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(handler -> {
                 if (handler instanceof ItemStackHandler itemHandler) {
                     itemHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, ItemStack.EMPTY);
                 }

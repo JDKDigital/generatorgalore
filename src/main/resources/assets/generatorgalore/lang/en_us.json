@@ -19,5 +19,10 @@
   "item.generatorgalore.diamond_to_emerald_upgrade": "Diamond to Emerald Upgrade",
   "generatorgalore.screen.empty": "Empty",
   "generatorgalore.screen.energy_level": "Energy: %s",
-  "generatorgalore.screen.fluid_level": "%s: %s"
+  "generatorgalore.screen.fluid_level": "%s: %s",
+  "generatorgalore.screen.fuel_time": "Remaining fuel time: %s",
+  "generatorgalore.screen.generation_rate": "Rate: %sFE/t",
+  "generatorgalore.screen.transfer_rate": "Transfer rate: %sFE/t",
+  "generatorgalore.screen.max_energy": "Max energy: %sFE",
+  "generatorgalore.screen.fuel_type": "Fuel type: %s"
 }

@@ -11,9 +11,11 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,16 +62,16 @@ public abstract class CapabilityBlockEntity extends BlockEntity implements MenuP
     }
 
     public void savePacketNBT(CompoundTag tag) {
-        getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> {
+        getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(inv -> {
             CompoundTag compound = ((ItemStackHandler) inv).serializeNBT();
             tag.put("inv", compound);
         });
 
-        getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
+        getCapability(CapabilityEnergy.ENERGY).ifPresent(handler -> {
             tag.put("energy", ((EnergyStorage) handler).serializeNBT());
         });
 
-        getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluid -> {
+        getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).ifPresent(fluid -> {
             CompoundTag nbt = new CompoundTag();
             ((FluidTank) fluid).writeToNBT(nbt);
             tag.put("fluid", nbt);
@@ -78,17 +80,17 @@ public abstract class CapabilityBlockEntity extends BlockEntity implements MenuP
 
     public void loadPacketNBT(CompoundTag tag) {
         if (tag.contains("inv")) {
-            getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> ((ItemStackHandler) inv).deserializeNBT(tag.getCompound("inv")));
+            getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(inv -> ((ItemStackHandler) inv).deserializeNBT(tag.getCompound("inv")));
         }
 
         if (tag.contains("energy")) {
-            getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
+            getCapability(CapabilityEnergy.ENERGY).ifPresent(handler -> {
                 ((EnergyStorage) handler).deserializeNBT(tag.get("energy"));
             });
         }
 
         if (tag.contains("fluid")) {
-            getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluid -> {
+            getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).ifPresent(fluid -> {
                 ((FluidTank) fluid).readFromNBT(tag.getCompound("fluid"));
             });
         }
