@@ -36,7 +36,9 @@ public class GeneratorRegistry
         File lockFile = new File(GeneratorUtil.LOCK_FILE.toString(), "defaults.lock");
         if (!lockFile.exists()) {
             FileUtils.write(lockFile, "This lock file means the standard generators have already been added and you can now do your own custom stuff to them.", StandardCharsets.UTF_8);
-            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generators", Paths.get(GeneratorUtil.GENERATORS.toString()));
+            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generators", Paths.get(GeneratorUtil.GENERATORS.toString()), true);
+        } else {
+            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generators", Paths.get(GeneratorUtil.GENERATORS.toString()), false);
         }
 
         var files = GeneratorUtil.GENERATORS.toFile().listFiles((FileFilter) FileFilterUtils.suffixFileFilter(".json"));
@@ -80,7 +82,7 @@ public class GeneratorRegistry
         }
     }
 
-    public static void setupDefaultFiles(String dataPath, Path targetPath) {
+    public static void setupDefaultFiles(String dataPath, Path targetPath, boolean override) {
         List<Path> roots = List.of(ModList.get().getModFileById(GeneratorGalore.MODID).getFile().getFilePath());
         GeneratorGalore.LOGGER.info("[Generator Galore] Pulling defaults from: " + roots);
 
@@ -89,32 +91,36 @@ public class GeneratorRegistry
         }
 
         for (Path modRoot : roots) {
-            setupDefaultFiles(dataPath, targetPath, modRoot);
+            setupDefaultFiles(dataPath, targetPath, modRoot, override);
         }
     }
 
-    public static void setupDefaultFiles(String dataPath, Path targetPath, Path modPath) {
+    public static void setupDefaultFiles(String dataPath, Path targetPath, Path modPath, boolean override) {
         if (Files.isRegularFile(modPath)) {
             try(FileSystem fileSystem = FileSystems.newFileSystem(modPath)) {
                 Path path = fileSystem.getPath(dataPath);
                 if (Files.exists(path)) {
-                    copyFiles(path, targetPath);
+                    copyFiles(path, targetPath, override);
                 }
             } catch (IOException e) {
                 GeneratorGalore.LOGGER.error("Could not load source {}!!", modPath);
                 e.printStackTrace();
             }
         } else if (Files.isDirectory(modPath)) {
-            copyFiles(Paths.get(modPath.toString(), dataPath), targetPath);
+            copyFiles(Paths.get(modPath.toString(), dataPath), targetPath, override);
         }
     }
 
-    private static void copyFiles(Path source, Path targetPath) {
+    private static void copyFiles(Path source, Path targetPath, boolean override) {
         try (Stream<Path> sourceStream = Files.walk(source)) {
             sourceStream.filter(f -> f.getFileName().toString().endsWith(".json"))
                     .forEach(path -> {
                         try {
-                            Files.copy(path, Paths.get(targetPath.toString(), path.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
+                            if (override) {
+                                Files.copy(path, Paths.get(targetPath.toString(), path.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
+                            } else {
+                                Files.copy(path, Paths.get(targetPath.toString(), path.getFileName().toString()));
+                            }
                         } catch (IOException e) {
                             GeneratorGalore.LOGGER.error("Could not copy file: {}, Target: {}", path, targetPath);
                         }

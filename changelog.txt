@@ -1,3 +1,9 @@
+1.18.2-0.1.0.1
+
+-- Fixed mineable tag breaking
+-- Added tooltips with generator info
+
+
 1.18.2-0.1.0.0
 
 -- Initial release

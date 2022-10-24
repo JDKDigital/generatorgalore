@@ -35,8 +35,6 @@ public class GeneratorGalore
     public GeneratorGalore()
     {
         /**
-         * Add tooltip with info
-         * Add info to gen screen
          * Add culinary generator
          * Add measurement of current power drain
          */
