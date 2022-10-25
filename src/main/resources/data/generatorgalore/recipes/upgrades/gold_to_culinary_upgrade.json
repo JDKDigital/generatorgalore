@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IFI",
+    "ERE"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:item_frame"
+    },
+    "I": {
+      "tag": "forge:crops"
+    },
+    "E": {
+      "tag": "forge:eggs"
+    },
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:gold_to_culinary_upgrade"
+  }
+}

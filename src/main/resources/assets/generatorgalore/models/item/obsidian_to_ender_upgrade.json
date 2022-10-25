@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:item/upgrade",
+  "textures": {
+    "base": "generatorgalore:block/ender_generator_top"
+  }
+}

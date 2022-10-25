@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/generator",
+  "textures": {
+    "top": "generatorgalore:block/ender_generator_top",
+    "side": "generatorgalore:block/ender_generator_side"
+  }
+}

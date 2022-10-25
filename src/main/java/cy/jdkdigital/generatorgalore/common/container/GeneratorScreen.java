@@ -31,10 +31,10 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
     }
 
     @Override
-    public void render(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(poseStack);
+        super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     @Override
@@ -44,7 +44,6 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
         this.font.draw(poseStack, this.playerInventoryTitle, 8.0F, (float) (this.getYSize() - 96 + 2), 4210752);
 
         this.font.draw(poseStack, new TranslatableComponent(GeneratorGalore.MODID + ".screen.generation_rate", generator.getGenerationRate()), generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) ? 51.0F : 8.0F, 24.0F, 4210752);
-//        this.font.draw(poseStack, new TranslatableComponent(GeneratorGalore.MODID + ".screen.transfer_rate", generator.getTransferRate()), generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) ? 51.0F : 8.0F, 32.0F, 4210752);
 
         List<FormattedCharSequence> tooltipList = new ArrayList<>();
         this.menu.blockEntity.getCapability(CapabilityEnergy.ENERGY).ifPresent(handler -> {

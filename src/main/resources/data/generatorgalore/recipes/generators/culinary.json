@@ -3,20 +3,23 @@
   "pattern": [
     "III",
     "IGI",
-    "IRI"
+    "ERE"
   ],
   "key": {
     "G": {
-      "item": "minecraft:furnace"
+      "item": "generatorgalore:gold_generator"
     },
     "I": {
-      "tag": "forge:ingots/copper"
+      "tag": "forge:crops"
+    },
+    "E": {
+      "tag": "forge:eggs"
     },
     "R": {
       "tag": "forge:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "generatorgalore:copper_generator"
+    "item": "generatorgalore:culinary_generator"
   }
 }

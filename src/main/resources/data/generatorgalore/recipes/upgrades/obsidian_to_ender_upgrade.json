@@ -2,21 +2,21 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "III",
-    "IGI",
+    "IFI",
     "IRI"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:furnace"
+    "F": {
+      "item": "minecraft:item_frame"
     },
     "I": {
-      "tag": "forge:ingots/copper"
+      "tag": "forge:ender_pearls"
     },
     "R": {
       "tag": "forge:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "generatorgalore:copper_generator"
+    "item": "generatorgalore:obsidian_to_ender_upgrade"
   }
 }

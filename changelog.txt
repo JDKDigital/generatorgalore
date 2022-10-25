@@ -1,3 +1,10 @@
+1.18.2-0.1.0.2
+
+-- Added culinary generator
+-- Added ender generator
+-- Fixed copper generator recipe
+
+
 1.18.2-0.1.0.1
 
 -- Fixed mineable tag breaking

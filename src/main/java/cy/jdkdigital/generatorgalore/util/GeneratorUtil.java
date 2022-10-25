@@ -27,6 +27,7 @@ public class GeneratorUtil
     public static ResourceLocation EMPTY_TAG = new ResourceLocation(GeneratorGalore.MODID, "empty");
     public static String FUEL_SOLID = "SOLID";
     public static String FUEL_FLUID = "FLUID";
+    public static String FUEL_FOOD = "FOOD";
     public static final Path LOCK_FILE = createCustomPath("");
     public static final Path GENERATORS = createCustomPath("generators");
 

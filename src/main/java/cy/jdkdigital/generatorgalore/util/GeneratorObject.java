@@ -10,6 +10,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class GeneratorObject
@@ -20,10 +22,12 @@ public class GeneratorObject
     private Supplier<MenuType<GeneratorMenu>> menuType;
     private final String fuelType;
     private final double generationRate;
+    private double modifiedGenerationRate =  0;
     private final double transferRate;
     private final double consumptionRate;
     private final int bufferCapacity;
     private final ResourceLocation fuelTag;
+    private Map<ResourceLocation, GeneratorCreator.Fuel> fuelList;
 
     public GeneratorObject(ResourceLocation id, String fuelType, double generationRate, double transferRate, double consumptionRate, int bufferCapacity, ResourceLocation fuelTag) {
         this.id = id;
@@ -68,6 +72,10 @@ public class GeneratorObject
     }
 
     public double getGenerationRate() {
+        return modifiedGenerationRate > 0 ? modifiedGenerationRate : generationRate;
+    }
+
+    public double getOriginalGenerationRate() {
         return generationRate;
     }
 
@@ -91,11 +99,23 @@ public class GeneratorObject
         return RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("id").orElse(id).forGetter(GeneratorObject::getId),
             Codec.STRING.fieldOf("fuelType").orElse(GeneratorUtil.FUEL_SOLID).forGetter(GeneratorObject::getFuelType),
-            Codec.DOUBLE.fieldOf("generationRate").forGetter(GeneratorObject::getGenerationRate),
+            Codec.DOUBLE.fieldOf("generationRate").forGetter(GeneratorObject::getOriginalGenerationRate),
             Codec.DOUBLE.fieldOf("transferRate").forGetter(GeneratorObject::getTransferRate),
             Codec.DOUBLE.fieldOf("consumptionRate").forGetter(GeneratorObject::getConsumptionRate),
             Codec.INT.fieldOf("bufferCapacity").forGetter(GeneratorObject::getBufferCapacity),
             ResourceLocation.CODEC.fieldOf("fuelTag").orElse(GeneratorUtil.EMPTY_TAG).forGetter(GeneratorObject::getFuelTag)
         ).apply(instance, GeneratorObject::new));
+    }
+
+    public void setGenerationRate(double generationRate) {
+        this.modifiedGenerationRate = generationRate;
+    }
+
+    public void setFuelList(Map<ResourceLocation, GeneratorCreator.Fuel> fuelList) {
+        this.fuelList = fuelList;
+    }
+
+    public Map<ResourceLocation, GeneratorCreator.Fuel> getFuelList() {
+        return fuelList;
     }
 }

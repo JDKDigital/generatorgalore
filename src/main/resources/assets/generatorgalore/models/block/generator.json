@@ -2,6 +2,8 @@
   "parent": "minecraft:block/orientable",
   "textures": {
     "particle": "#side",
+    "face": "#side",
+    "back": "#side",
     "front": "generatorgalore:block/generator_off",
     "frame": "generatorgalore:block/generator_frame"
   },
@@ -13,8 +15,8 @@
       "faces": {
         "down":  { "texture": "#top", "cullface": "down" },
         "up":    { "texture": "#top", "cullface": "up" },
-        "north": { "texture": "#side", "cullface": "north" },
-        "south": { "texture": "#side", "cullface": "south" },
+        "north": { "texture": "#face", "cullface": "north" },
+        "south": { "texture": "#back", "cullface": "south" },
         "west":  { "texture": "#side", "cullface": "west" },
         "east":  { "texture": "#side", "cullface": "east" }
       }
