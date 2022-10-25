@@ -7,16 +7,16 @@
   ],
   "key": {
     "G": {
-      "item": "minecraft:furnace"
+      "item": "generatorgalore:obsidian_generator"
     },
     "I": {
-      "tag": "forge:ingots/copper"
+      "tag": "forge:ender_pearls"
     },
     "R": {
       "tag": "forge:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "generatorgalore:copper_generator"
+    "item": "generatorgalore:ender_generator"
   }
 }

@@ -29,26 +29,26 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
     }
 
     @Override
-    public void render(@Nonnull PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(poseStack);
+        super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     @Override
-    protected void renderLabels(@Nonnull PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title, 8.0F, 6.0F, 4210752);
-        this.font.draw(matrixStack, this.playerInventoryTitle, 8.0F, (float) (this.getYSize() - 96 + 2), 4210752);
+    protected void renderLabels(@Nonnull PoseStack poseStack, int mouseX, int mouseY) {
+        this.font.draw(poseStack, this.title, 8.0F, 6.0F, 4210752);
+        this.font.draw(poseStack, this.playerInventoryTitle, 8.0F, (float) (this.getYSize() - 96 + 2), 4210752);
 
+        this.font.draw(poseStack, Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", this.menu.blockEntity.generator.getGenerationRate()), this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) ? 51.0F : 8.0F, 24.0F, 4210752);
+
+        List<FormattedCharSequence> tooltipList = new ArrayList<>();
         this.menu.blockEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
             int energyAmount = handler.getEnergyStored();
 
             // Energy level tooltip
             if (isHovering(134, 16, 16, 54, mouseX, mouseY)) {
-                List<FormattedCharSequence> tooltipList = new ArrayList<>();
                 tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.energy_level", energyAmount + "FE").getVisualOrderText());
-
-                renderTooltip(matrixStack, tooltipList, mouseX - getGuiLeft(), mouseY - getGuiTop());
             }
         });
 
@@ -58,18 +58,20 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
 
                 // Fluid level tooltip
                 if (isHovering(26, 16, 16, 54, mouseX, mouseY)) {
-                    List<FormattedCharSequence> tooltipList = new ArrayList<>();
-
                     if (fluidStack.getAmount() > 0) {
                         tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.fluid_level", Component.translatable(fluidStack.getTranslationKey()).getString(), fluidStack.getAmount() + "mB").getVisualOrderText());
                     } else {
                         tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.empty").getVisualOrderText());
                     }
-
-                    renderTooltip(matrixStack, tooltipList, mouseX - getGuiLeft(), mouseY - getGuiTop());
                 }
             });
         }
+        if (this.menu.blockEntity.isLit()) {
+            if (isHovering(81, 38, 13, 13, mouseX, mouseY)) {
+                tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.fuel_time", this.menu.blockEntity.litTime).getVisualOrderText());
+            }
+        }
+        renderTooltip(poseStack, tooltipList, mouseX - getGuiLeft(), mouseY - getGuiTop());
     }
 
     @Override

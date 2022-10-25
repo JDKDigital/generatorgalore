@@ -3,7 +3,6 @@ package cy.jdkdigital.generatorgalore.util;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
-import cy.jdkdigital.generatorgalore.common.container.GeneratorScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -28,6 +27,7 @@ public class GeneratorUtil
     public static ResourceLocation EMPTY_TAG = new ResourceLocation(GeneratorGalore.MODID, "empty");
     public static String FUEL_SOLID = "SOLID";
     public static String FUEL_FLUID = "FLUID";
+    public static String FUEL_FOOD = "FOOD";
     public static final Path LOCK_FILE = createCustomPath("");
     public static final Path GENERATORS = createCustomPath("generators");
 

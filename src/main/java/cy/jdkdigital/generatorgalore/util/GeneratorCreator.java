@@ -1,5 +1,6 @@
 package cy.jdkdigital.generatorgalore.util;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
@@ -16,6 +17,12 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GeneratorCreator
 {
@@ -37,10 +44,30 @@ public class GeneratorCreator
                 GeneratorGalore.ITEMS.register(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", () -> new UpgradeItem(new Item.Properties().tab(ModItemGroups.GENERATORGALORE), previousTier, generator));
             }
 
+            // Custom fuel list
+            if (json.has("fuelList")) {
+                generator.setFuelList(parseFuelList(json.get("fuelList")));
+            }
+
             return generator;
         } else {
-            GeneratorGalore.LOGGER.info("no codec read");
+            GeneratorGalore.LOGGER.info("failed to read generator configuration for " + id);
         }
         return null;
     }
+
+    private static Map<ResourceLocation, Fuel> parseFuelList(JsonElement fuelList) {
+        Map<ResourceLocation, GeneratorCreator.Fuel> fuels = new HashMap<>();
+        for (JsonElement jsonElement : fuelList.getAsJsonArray()) {
+            var el = jsonElement.getAsJsonObject();
+            var id = new ResourceLocation(el.get("item").getAsString());
+            fuels.put(id, new Fuel(
+                el.get("rate").getAsFloat(),
+                el.get("burnTime").getAsInt()
+            ));
+        }
+        return fuels;
+    }
+
+    public record Fuel(float rate, int burnTime) {}
 }

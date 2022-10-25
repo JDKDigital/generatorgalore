@@ -1,3 +1,16 @@
+1.19.2-0.1.0.3
+
+-- Added culinary generator
+-- Added ender generator
+-- Fixed copper generator recipe
+
+
+1.19.2-0.1.0.2
+
+-- Fixed mineable tag breaking
+-- Added tooltips with generator info
+
+
 1.19.2-0.1.0.1
 
 -- Fixed fuel duplicating when upgrading a generator

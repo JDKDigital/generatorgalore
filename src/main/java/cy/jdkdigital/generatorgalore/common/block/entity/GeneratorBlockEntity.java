@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -35,6 +36,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +51,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     private int tickCounter = 0;
     public int litTime;
     public int litDuration;
+    public double remainder = 0;
     public int fluidId = 0;
     public final GeneratorObject generator;
     private final LazyOptional<ControlledEnergyStorage> energyHandler;
@@ -69,6 +72,12 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
 
                 if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
                     return stack.is(ModTags.getItemTag(generator.getFuelTag()));
+                }
+                if (generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
+                    return stack.getItem().getFoodProperties(stack, null) != null;
+                }
+                if (generator.getFuelList() != null) {
+                    return generator.getFuelList().containsKey(ForgeRegistries.ITEMS.getKey(stack.getItem()));
                 }
                 return ForgeHooks.getBurnTime(stack, null) > 0;
             }
@@ -102,12 +111,12 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         }
         if (++blockEntity.tickCounter % tickRate == 0) {
 
-            int inputPowerAmount = (int) (blockEntity.generator.getGenerationRate() * tickRate);
 
             blockEntity.energyHandler.ifPresent(energyHandler -> {
+                double inputPowerAmount = blockEntity.generator.getGenerationRate() * tickRate;
                 AtomicBoolean hasConsumedFuel = new AtomicBoolean(false);
 
-                if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_SOLID)) {
+                if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_SOLID) || blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
                     blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(itemHandler -> {
                         if (blockEntity.isLit()) {
                             blockEntity.litTime = Math.max(0, blockEntity.litTime - tickRate);
@@ -115,7 +124,23 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                         // Consume fuel
                         ItemStack fuelStack = itemHandler.getStackInSlot(GeneratorMenu.SLOT_FUEL);
                         if (!blockEntity.isLit() && !fuelStack.isEmpty() && energyHandler.getEnergyStored() < energyHandler.getMaxEnergyStored()) {
-                            blockEntity.litTime = (int) (ForgeHooks.getBurnTime(fuelStack, null) * blockEntity.generator.getConsumptionRate());
+                            if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
+                                FoodProperties foodProperties = fuelStack.getItem().getFoodProperties(fuelStack, null);
+                                if (foodProperties != null) {
+                                    int value = foodProperties.getNutrition();
+                                    float saturation = foodProperties.getSaturationModifier();
+                                    blockEntity.generator.setGenerationRate(value * blockEntity.generator.getOriginalGenerationRate());
+                                    double totalRF = value * saturation * 8000;
+                                    blockEntity.litTime = (int) (totalRF / blockEntity.generator.getGenerationRate());
+                                }
+                            } else if (blockEntity.generator.getFuelList() != null) {
+                                var fuel = blockEntity.generator.getFuelList().get(ForgeRegistries.ITEMS.getKey(fuelStack.getItem()));
+                                blockEntity.generator.setGenerationRate(fuel.rate() > 0 ? fuel.rate() : blockEntity.generator.getOriginalGenerationRate());
+                                blockEntity.litTime = fuel.burnTime();
+                            } else {
+                                blockEntity.litTime = (int) (ForgeHooks.getBurnTime(fuelStack, null) * blockEntity.generator.getConsumptionRate());
+                            }
+
                             if (blockEntity.litTime == 0) {
                                 blockEntity.litTime = (int) blockEntity.generator.getConsumptionRate();
                             }
@@ -138,7 +163,13 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                 }
 
                 if (hasConsumedFuel.get()) {
-                    energyHandler.receiveEnergy(inputPowerAmount, false, true);
+                    inputPowerAmount = blockEntity.generator.getGenerationRate() * tickRate; // recalculate
+                    // If the generated FE is not divisible by the tickRate, save the excess for next tick
+                    inputPowerAmount = (inputPowerAmount + blockEntity.remainder);
+                    int addedPower = (int) inputPowerAmount;
+                    blockEntity.remainder = inputPowerAmount - addedPower;
+
+                    energyHandler.receiveEnergy(addedPower, false, true);
                     blockEntity.setOn(true);
                 } else {
                     blockEntity.setOn(false);
@@ -229,6 +260,9 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         super.load(tag);
         litTime = tag.getInt("litTime");
         litDuration = tag.getInt("litDuration");
+        if (tag.contains("generationRate")) {
+            generator.setGenerationRate(tag.getDouble("generationRate"));
+        }
     }
 
     @Override
@@ -236,6 +270,9 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         super.saveAdditional(tag);
         tag.putInt("litTime", litTime);
         tag.putInt("litDuration", litDuration);
+        if (generator.getGenerationRate() != generator.getOriginalGenerationRate()) {
+            tag.putDouble("generationRate", generator.getGenerationRate());
+        }
     }
 
     @Override

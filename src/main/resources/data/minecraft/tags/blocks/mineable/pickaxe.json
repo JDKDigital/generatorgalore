@@ -2,13 +2,15 @@
     "replace": false,
     "values": [
         "generatorgalore:copper_generator",
-        "generatorgalore:iron_generator",
-        "generatorgalore:gold_generator",
+        "generatorgalore:culinary_generator",
         "generatorgalore:diamond_generator",
-        "generatorgalore:obsidian_generator",
+        "generatorgalore:emerald_generator",
+        "generatorgalore:ender_generator",
+        "generatorgalore:gold_generator",
+        "generatorgalore:iron_generator",
+        "generatorgalore:magmatic_generator",
         "generatorgalore:netherite_generator",
         "generatorgalore:netherstar_generator",
-        "generatorgalore:magmatic_generator",
-        "generatorgalore:emerald_generator"
+        "generatorgalore:obsidian_generator"
     ]
 }
