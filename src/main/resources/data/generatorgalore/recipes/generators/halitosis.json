@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:ender_generator"
+    },
+    "I": {
+      "tag": "forge:gems/amethyst"
+    },
+    "R": {
+      "item": "minecraft:end_rod"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:halitosis_generator"
+  }
+}

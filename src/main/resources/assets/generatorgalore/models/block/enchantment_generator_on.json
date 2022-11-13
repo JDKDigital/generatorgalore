@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:block/enchantment_generator",
+  "textures": {
+    "front": "generatorgalore:block/generator_on"
+  }
+}

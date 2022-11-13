@@ -1,7 +1,6 @@
 {
   "parent": "generatorgalore:block/generator",
   "textures": {
-    "top": "minecraft:block/iron_block",
     "side": "minecraft:block/iron_block"
   }
 }

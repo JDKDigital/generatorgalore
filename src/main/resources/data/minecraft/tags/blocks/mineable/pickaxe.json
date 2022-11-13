@@ -1,16 +1,61 @@
 {
     "replace": false,
     "values": [
-        "generatorgalore:copper_generator",
-        "generatorgalore:culinary_generator",
-        "generatorgalore:diamond_generator",
-        "generatorgalore:emerald_generator",
-        "generatorgalore:ender_generator",
-        "generatorgalore:gold_generator",
-        "generatorgalore:iron_generator",
-        "generatorgalore:magmatic_generator",
-        "generatorgalore:netherite_generator",
-        "generatorgalore:netherstar_generator",
-        "generatorgalore:obsidian_generator"
+        {
+            "id": "generatorgalore:copper_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:culinary_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:diamond_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:emerald_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:enchantment_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:ender_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:gold_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:halitosis_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:iron_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:magmatic_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:netherite_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:netherstar_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:obsidian_generator",
+            "required": false
+        },
+        {
+            "id": "generatorgalore:potion_generator",
+            "required": false
+        }
     ]
 }

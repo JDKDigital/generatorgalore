@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:obsidian_generator"
+    },
+    "I": {
+      "item": "minecraft:enchanted_book"
+    },
+    "R": {
+      "item": "minecraft:enchanting_table"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:enchantment_generator"
+  }
+}

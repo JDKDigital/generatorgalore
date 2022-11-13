@@ -2,9 +2,9 @@ package cy.jdkdigital.generatorgalore.common.block.entity;
 
 import cy.jdkdigital.generatorgalore.Config;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import cy.jdkdigital.generatorgalore.common.block.Generator;
-import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import cy.jdkdigital.generatorgalore.cap.ControlledEnergyStorage;
+import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
+import cy.jdkdigital.generatorgalore.common.container.ManualItemHandler;
 import cy.jdkdigital.generatorgalore.init.ModTags;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
@@ -18,9 +18,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -65,7 +65,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         this.generator = generator;
 
         this.energyHandler = LazyOptional.of(() -> new ControlledEnergyStorage(generator.getBufferCapacity()));
-        this.inventoryHandler = LazyOptional.of(() -> new ItemStackHandler(2) {
+        this.inventoryHandler = LazyOptional.of(() -> new ManualItemHandler(2) {
             @Override
             public boolean isItemValid(int slot, @NotNull ItemStack stack) {
                 if (slot != GeneratorMenu.SLOT_FUEL) return false;
@@ -73,13 +73,24 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                 if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
                     return stack.is(ModTags.getItemTag(generator.getFuelTag()));
                 }
-                if (generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
+                if (generator.getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
                     return stack.getItem().getFoodProperties(stack, null) != null;
+                }
+                if (generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
+                    return EnchantmentHelper.getEnchantments(stack).size() > 0;
+                }
+                if (generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
+                    return stack.getItem() instanceof PotionItem;
                 }
                 if (generator.getFuelList() != null) {
                     return generator.getFuelList().containsKey(ForgeRegistries.ITEMS.getKey(stack.getItem()));
                 }
                 return ForgeHooks.getBurnTime(stack, null) > 0;
+            }
+
+            @Override
+            protected void onContentsChanged(int slot) {
+                setChanged();
             }
         });
         this.fluidInventory = LazyOptional.of(() -> new FluidTank(10000) {
@@ -94,7 +105,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
             @Override
             protected void onContentsChanged() {
                 super.onContentsChanged();
-                if (generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+                if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
                     fluidId = Registry.FLUID.getId(getFluid().getFluid());
                     setChanged();
                 }
@@ -110,29 +121,30 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
             blockEntity.hasLoaded = true;
         }
         if (++blockEntity.tickCounter % tickRate == 0) {
-
-
             blockEntity.energyHandler.ifPresent(energyHandler -> {
                 double inputPowerAmount = blockEntity.generator.getGenerationRate() * tickRate;
                 AtomicBoolean hasConsumedFuel = new AtomicBoolean(false);
 
-                if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_SOLID) || blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
+                if (!blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
                     blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(itemHandler -> {
                         if (blockEntity.isLit()) {
                             blockEntity.litTime = Math.max(0, blockEntity.litTime - tickRate);
                         }
-                        // Consume fuel
+                        // Consume fuels
                         ItemStack fuelStack = itemHandler.getStackInSlot(GeneratorMenu.SLOT_FUEL);
-                        if (!blockEntity.isLit() && !fuelStack.isEmpty() && energyHandler.getEnergyStored() < energyHandler.getMaxEnergyStored()) {
-                            if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FOOD)) {
-                                FoodProperties foodProperties = fuelStack.getItem().getFoodProperties(fuelStack, null);
-                                if (foodProperties != null) {
-                                    int value = foodProperties.getNutrition();
-                                    float saturation = foodProperties.getSaturationModifier();
-                                    blockEntity.generator.setGenerationRate(value * blockEntity.generator.getOriginalGenerationRate());
-                                    double totalRF = value * saturation * 8000;
-                                    blockEntity.litTime = (int) (totalRF / blockEntity.generator.getGenerationRate());
-                                }
+                        if (!blockEntity.isLit() && !fuelStack.isEmpty() && itemHandler.isItemValid(GeneratorMenu.SLOT_FUEL, fuelStack) && energyHandler.getEnergyStored() < energyHandler.getMaxEnergyStored()) {
+                            if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
+                                var rate = GeneratorUtil.calculateEnchantmentGenerationRate(blockEntity.generator, fuelStack);
+                                blockEntity.generator.setGenerationRate(rate.getFirst());
+                                blockEntity.litTime = rate.getSecond();
+                            } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
+                                var rate = GeneratorUtil.calculatePotionGenerationRate(blockEntity.generator, fuelStack);
+                                blockEntity.generator.setGenerationRate(rate.getFirst());
+                                blockEntity.litTime = rate.getSecond();
+                            } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
+                                var rate = GeneratorUtil.calculateFoodGenerationRate(blockEntity.generator, fuelStack);
+                                blockEntity.generator.setGenerationRate(rate.getFirst());
+                                blockEntity.litTime = rate.getSecond();
                             } else if (blockEntity.generator.getFuelList() != null) {
                                 var fuel = blockEntity.generator.getFuelList().get(ForgeRegistries.ITEMS.getKey(fuelStack.getItem()));
                                 blockEntity.generator.setGenerationRate(fuel.rate() > 0 ? fuel.rate() : blockEntity.generator.getOriginalGenerationRate());
@@ -141,18 +153,26 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                                 blockEntity.litTime = (int) (ForgeHooks.getBurnTime(fuelStack, null) * blockEntity.generator.getConsumptionRate());
                             }
 
+                            // Do burn
                             if (blockEntity.litTime == 0) {
                                 blockEntity.litTime = (int) blockEntity.generator.getConsumptionRate();
                             }
                             blockEntity.litDuration = blockEntity.litTime;
-                            fuelStack.shrink(1);
+                            if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT) && itemHandler instanceof ItemStackHandler stackHandler) {
+                                // strip enchantments
+                                stackHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, new ItemStack(fuelStack.getItem() instanceof EnchantedBookItem ? Items.BOOK : fuelStack.getItem()));
+                            } else if (!fuelStack.getCraftingRemainingItem().isEmpty() && fuelStack.getCount() == 1 && itemHandler instanceof ItemStackHandler stackHandler) {
+                                stackHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, fuelStack.getCraftingRemainingItem());
+                            } else {
+                                fuelStack.shrink(1);
+                            }
                         }
                         // Generate power
                         if (blockEntity.isLit()) {
                             hasConsumedFuel.set(true);
                         }
                     });
-                } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) && energyHandler.getEnergyStored() + inputPowerAmount <= energyHandler.getMaxEnergyStored()) {
+                } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && energyHandler.getEnergyStored() + inputPowerAmount <= energyHandler.getMaxEnergyStored()) {
                     blockEntity.fluidInventory.ifPresent(fluidHandler -> blockEntity.energyHandler.ifPresent(handler -> {
                         double fluidConsumeAmount = blockEntity.generator.getConsumptionRate() * tickRate;
                         if (fluidHandler.getFluidInTank(0).getAmount() >= fluidConsumeAmount) {
@@ -228,7 +248,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
             return inventoryHandler.cast();
-        } else if (cap == ForgeCapabilities.FLUID_HANDLER && generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        } else if (cap == ForgeCapabilities.FLUID_HANDLER && generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             return fluidInventory.cast();
         } else if (cap == ForgeCapabilities.ENERGY) {
             return energyHandler.cast();
@@ -280,7 +300,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         super.loadPacketNBT(tag);
 
         // set fluid ID for screens
-        if (generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             Fluid fluid = fluidInventory.map(fluidHandler -> fluidHandler.getFluidInTank(0).getFluid()).orElse(Fluids.EMPTY);
             fluidId = Registry.FLUID.getId(fluid);
         }

@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:block/generator",
+  "textures": {
+    "side": "minecraft:block/amethyst_block"
+  }
+}

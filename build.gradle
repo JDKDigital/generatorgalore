@@ -16,7 +16,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 minecraft {
     mappings channel: 'parchment', version: '2022.10.16-1.19.2'
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -117,6 +117,8 @@ dependencies {
     runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 
     implementation fg.deobf("curse.maven:jade-324717:3916646")
+    implementation fg.deobf("curse.maven:jei-238222:3969039")
+    implementation fg.deobf("curse.maven:productivebees-377897:4018298")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

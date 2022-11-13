@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "BRB"
+  ],
+  "key": {
+    "G": {
+      "item": "generatorgalore:culinary_generator"
+    },
+    "I": {
+      "tag": "forge:dyes/pink"
+    },
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
+    },
+    "B": {
+      "item": "minecraft:brewing_stand"
+    }
+  },
+  "result": {
+    "item": "generatorgalore:potion_generator"
+  }
+}

@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 
 public class ModBlockEntityTypes
 {
-
     public static <E extends BlockEntity, T extends BlockEntityType<E>> Supplier<T> register(String id, Supplier<T> supplier) {
         return GeneratorGalore.BLOCK_ENTITIES.register(id, supplier);
     }

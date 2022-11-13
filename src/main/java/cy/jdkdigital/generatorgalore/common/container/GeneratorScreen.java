@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
         this.font.draw(poseStack, this.title, 8.0F, 6.0F, 4210752);
         this.font.draw(poseStack, this.playerInventoryTitle, 8.0F, (float) (this.getYSize() - 96 + 2), 4210752);
 
-        this.font.draw(poseStack, Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", this.menu.blockEntity.generator.getGenerationRate()), this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) ? 51.0F : 8.0F, 24.0F, 4210752);
+        this.font.draw(poseStack, Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", this.menu.blockEntity.generator.getGenerationRate()), this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? 51.0F : 8.0F, 24.0F, 4210752);
 
         List<FormattedCharSequence> tooltipList = new ArrayList<>();
         this.menu.blockEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
@@ -52,7 +51,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
             }
         });
 
-        if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             this.menu.blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(handler -> {
                 FluidStack fluidStack = handler.getFluidInTank(0);
 
@@ -79,7 +78,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        RenderSystem.setShaderTexture(0, this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) ? GUI_FLUID : GUI_SOLID);
+        RenderSystem.setShaderTexture(0, this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? GUI_FLUID : GUI_SOLID);
         blit(poseStack, getGuiLeft(), getGuiTop(), 0, 0, this.getXSize(), this.getYSize());
 
         // Burn progress
@@ -94,7 +93,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
             blit(poseStack, getGuiLeft() + 134, getGuiTop() + 70 - energyLevel, 176, 70 - energyLevel, 16, energyLevel + 1);
         });
 
-        if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             // Draw fluid tank
             this.menu.blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(handler -> {
                 FluidStack fluidStack = handler.getFluidInTank(0);

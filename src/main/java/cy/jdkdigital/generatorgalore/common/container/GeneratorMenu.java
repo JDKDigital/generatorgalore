@@ -78,7 +78,7 @@ public class GeneratorMenu extends AbstractContainer
             }
         });
 
-        if (this.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        if (this.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             // Fluid
             addDataSlots(new ContainerData()
             {
@@ -112,7 +112,9 @@ public class GeneratorMenu extends AbstractContainer
         }
 
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> {
-            addSlot(new SlotItemHandler(inv, SLOT_FUEL, 80, 54));
+            if (inv instanceof ManualItemHandler itemHandler) {
+                addSlot(new ManualSlotItemHandler(itemHandler, SLOT_FUEL, 80, 54));
+            }
         });
 
         layoutPlayerInventorySlots(inventory, 0, 8, 84);

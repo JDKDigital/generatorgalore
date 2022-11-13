@@ -1,6 +1,14 @@
+1.19.2-0.1.0.4
+
+-- Added enchantment generator
+-- Added halitosis generator (burns dragons breath)
+-- Added potion generator
+-- Added JEI integration
+
+
 1.19.2-0.1.0.3
 
--- Added culinary generator
+-- Added culinary generator (burns food)
 -- Added ender generator
 -- Fixed copper generator recipe
 
