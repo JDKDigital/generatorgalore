@@ -1,11 +1,9 @@
 package cy.jdkdigital.generatorgalore.util;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
-import mezz.jei.core.collect.SetMultiMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -13,28 +11,24 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.common.brewing.BrewingRecipe;
-import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
-import net.minecraftforge.common.brewing.IBrewingRecipe;
-import net.minecraftforge.common.brewing.VanillaBrewingRecipe;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GeneratorUtil
 {
@@ -50,7 +44,7 @@ public class GeneratorUtil
 
         public static EnumCodec<FuelType> CODEC = StringRepresentable.fromEnum(GeneratorUtil.FuelType::values);
 
-        private FuelType(String key) {
+        FuelType(String key) {
             this.key = key;
         }
 

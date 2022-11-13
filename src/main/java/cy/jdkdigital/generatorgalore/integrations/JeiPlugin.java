@@ -16,7 +16,6 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.common.plugins.vanilla.cooking.fuel.FuelRecipeMaker;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -27,9 +26,6 @@ import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -39,7 +35,6 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @mezz.jei.api.JeiPlugin

@@ -14,7 +14,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.Objects;
 

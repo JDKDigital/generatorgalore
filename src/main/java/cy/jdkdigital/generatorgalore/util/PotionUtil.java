@@ -1,12 +1,7 @@
 package cy.jdkdigital.generatorgalore.util;
 
-import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import mezz.jei.common.util.ErrorUtil;
-import mezz.jei.core.collect.SetMultiMap;
-import net.minecraft.nbt.CompoundTag;
+import cy.jdkdigital.generatorgalore.util.collection.SetMultiMap;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;

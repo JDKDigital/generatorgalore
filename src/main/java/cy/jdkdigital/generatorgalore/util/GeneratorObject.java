@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
