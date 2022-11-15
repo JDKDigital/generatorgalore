@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.common.block;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
+import cy.jdkdigital.generatorgalore.init.ModParticles;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.ChatFormatting;
@@ -11,10 +12,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -90,7 +94,7 @@ public class Generator extends BaseEntityBlock
         final BlockEntity blockEntity = level.getBlockEntity(pos);
 
         if (blockEntity instanceof GeneratorBlockEntity generatorBlockEntity) {
-            if (generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID) && player.getItemInHand(hand).getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) {
+            if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && player.getItemInHand(hand).getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent()) {
                 if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, null)) {
                     return InteractionResult.CONSUME;
                 }
@@ -123,15 +127,36 @@ public class Generator extends BaseEntityBlock
     @Override
     public void animateTick(BlockState pState, Level level, BlockPos pos, Random random) {
         if (pState.getValue(BlockStateProperties.LIT)) {
-            if (random.nextInt(15) == 0) {
-                for(int i = 0; i < random.nextInt(1) + 1; ++i) {
-                    level.addParticle(ParticleTypes.LAVA, (double)pos.getX() + 0.5D, (double)pos.getY() + 1.0D, (double)pos.getZ() + 0.5D, random.nextFloat() / 2.0F, 5.0E-5D, random.nextFloat() / 2.0F);
+            if (random.nextInt(11) == 0) {
+                for (int i = 0; i < random.nextInt(1) + 1; ++i) {
+                    switch (generator.getFuelType()) {
+                        case FLUID:
+                            break;
+                        case FOOD:
+                            double d0 = (double) pos.getX() + 0.4D + (double) random.nextFloat() * 0.2D;
+                            double d1 = (double) pos.getY() + 0.7D + (double) random.nextFloat() * 0.3D;
+                            double d2 = (double) pos.getZ() + 0.4D + (double) random.nextFloat() * 0.2D;
+                            level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
+                            break;
+                        case ENCHANTMENT:
+                            level.addParticle(ModParticles.RISING_ENCHANT_PARTICLE.get(), (double) pos.getX() + 0.5D, (double) pos.getY() + 1.0D, (double) pos.getZ() + 0.5D, random.nextFloat() / 2.0F, 5.0E-5D, random.nextFloat() / 2.0F);
+                            break;
+                        default:
+                            level.addParticle(ParticleTypes.LAVA, (double) pos.getX() + 0.5D, (double) pos.getY() + 1.0D, (double) pos.getZ() + 0.5D, random.nextFloat() / 2.0F, 5.0E-5D, random.nextFloat() / 2.0F);
+                    }
                 }
             }
 
             if (random.nextInt(55) == 0) {
                 for (int i = 0; i < level.random.nextInt(2) + 2; ++i) {
-                    level.addParticle(ParticleTypes.SMOKE, (double)pos.getX() + 0.5D + random.nextDouble() / 4.0D * (double)(random.nextBoolean() ? 1 : -1), pos.getY(), (double)pos.getZ() + 0.5D + random.nextDouble() / 4.0D * (double)(random.nextBoolean() ? 1 : -1), 0.0D, 0.005D, 0.0D);
+                    double d0 = (double) pos.getX() + 0.5D;
+                    double d1 = pos.getY();
+                    double d2 = (double) pos.getZ() + 0.5D;
+                    if (random.nextDouble() < 0.1D) {
+                        level.playLocalSound(d0, d1, d2, SoundEvents.SMOKER_SMOKE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+                    }
+
+                    level.addParticle(ParticleTypes.SMOKE, d0, d1 + 1.1D, d2, 0.0D, 0.0D, 0.0D);
                 }
             }
         }
@@ -162,5 +187,15 @@ public class Generator extends BaseEntityBlock
         pTooltip.add(new TranslatableComponent(GeneratorGalore.MODID + ".screen.transfer_rate", generator.getTransferRate()).withStyle(ChatFormatting.BLUE));
         pTooltip.add(new TranslatableComponent(GeneratorGalore.MODID + ".screen.max_energy", generator.getBufferCapacity()).withStyle(ChatFormatting.BLUE));
         pTooltip.add(new TranslatableComponent(GeneratorGalore.MODID + ".screen.fuel_type", generator.getFuelType()).withStyle(ChatFormatting.BLUE));
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState pState) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
+        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(pLevel.getBlockEntity(pPos));
     }
 }

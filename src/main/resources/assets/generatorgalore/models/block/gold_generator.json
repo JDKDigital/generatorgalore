@@ -1,7 +1,6 @@
 {
   "parent": "generatorgalore:block/generator",
   "textures": {
-    "top": "minecraft:block/gold_block",
     "side": "minecraft:block/gold_block"
   }
 }

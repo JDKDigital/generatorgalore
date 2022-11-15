@@ -1,13 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
+    "ICI",
     "IFI",
     "ERE"
   ],
   "key": {
     "F": {
       "item": "minecraft:item_frame"
+    },
+    "C": {
+      "item": "minecraft:cake"
     },
     "I": {
       "tag": "forge:crops"

@@ -16,7 +16,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.Objects;
 
@@ -80,7 +79,7 @@ public class GeneratorMenu extends AbstractContainer
             }
         });
 
-        if (this.blockEntity.generator.getFuelType().equals(GeneratorUtil.FUEL_FLUID)) {
+        if (this.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             // Fluid
             addDataSlots(new ContainerData()
             {
@@ -114,7 +113,9 @@ public class GeneratorMenu extends AbstractContainer
         }
 
         this.blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(inv -> {
-            addSlot(new SlotItemHandler(inv, SLOT_FUEL, 80, 54));
+            if (inv instanceof ManualItemHandler itemHandler) {
+                addSlot(new ManualSlotItemHandler(itemHandler, SLOT_FUEL, 80, 54));
+            }
         });
 
         layoutPlayerInventorySlots(inventory, 0, 8, 84);

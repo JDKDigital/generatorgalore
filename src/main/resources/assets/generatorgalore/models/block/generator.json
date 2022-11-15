@@ -4,6 +4,7 @@
     "particle": "#side",
     "face": "#side",
     "back": "#side",
+    "top": "#side",
     "front": "generatorgalore:block/generator_off",
     "frame": "generatorgalore:block/generator_frame"
   },

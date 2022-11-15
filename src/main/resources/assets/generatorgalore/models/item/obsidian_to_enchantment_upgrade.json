@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:item/upgrade",
+  "textures": {
+    "base": "generatorgalore:block/enchantment_generator_top"
+  }
+}

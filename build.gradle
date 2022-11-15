@@ -16,7 +16,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 minecraft {
     mappings channel: 'parchment', version: '2022.09.04-1.18.2'
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -117,14 +117,11 @@ dependencies {
     implementation fg.deobf("curse.maven:jade-324717:3803226")
 
     implementation fg.deobf("curse.maven:applied-energistics-2-223794:4013849")
-    implementation fg.deobf("curse.maven:flywheel-486392:3934664")
-    implementation fg.deobf("curse.maven:create-328085:4007544")
     implementation fg.deobf("curse.maven:cofh-core-69162:4022665")
     implementation fg.deobf("curse.maven:thermal-foundation-222880:4022682")
     implementation fg.deobf("curse.maven:thermal-expansion-69163:4022681")
     implementation fg.deobf("curse.maven:mekanism-268560:3875976")
-    implementation fg.deobf("curse.maven:mantle-74924:3829975")
-    implementation fg.deobf("curse.maven:tinkers-construct-74072:3998764")
+    implementation fg.deobf("curse.maven:refined-storage-243076:3921390")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

@@ -1,13 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
+    "ICI",
     "IGI",
     "ERE"
   ],
   "key": {
     "G": {
       "item": "generatorgalore:gold_generator"
+    },
+    "C": {
+      "item": "minecraft:cake"
     },
     "I": {
       "tag": "forge:crops"

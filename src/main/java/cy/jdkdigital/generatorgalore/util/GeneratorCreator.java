@@ -17,11 +17,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GeneratorCreator
@@ -44,9 +41,9 @@ public class GeneratorCreator
                 GeneratorGalore.ITEMS.register(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", () -> new UpgradeItem(new Item.Properties().tab(ModItemGroups.GENERATORGALORE), previousTier, generator));
             }
 
-            // Custom fuel list
+            // Custom fuels list
             if (json.has("fuelList")) {
-                generator.setFuelList(parseFuelList(json.get("fuelList")));
+                generator.setFuelList(parseFuelList(generator, json.get("fuelList")));
             }
 
             return generator;
@@ -56,13 +53,13 @@ public class GeneratorCreator
         return null;
     }
 
-    private static Map<ResourceLocation, Fuel> parseFuelList(JsonElement fuelList) {
+    private static Map<ResourceLocation, Fuel> parseFuelList(GeneratorObject generator, JsonElement fuelList) {
         Map<ResourceLocation, GeneratorCreator.Fuel> fuels = new HashMap<>();
         for (JsonElement jsonElement : fuelList.getAsJsonArray()) {
             var el = jsonElement.getAsJsonObject();
             var id = new ResourceLocation(el.get("item").getAsString());
             fuels.put(id, new Fuel(
-                el.get("rate").getAsFloat(),
+                el.has("rate") ? el.get("rate").getAsFloat() : (float) generator.getGenerationRate(),
                 el.get("burnTime").getAsInt()
             ));
         }
