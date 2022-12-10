@@ -46,8 +46,6 @@ public class GeneratorGalore
         RECIPE_TYPES.register(modEventBus);
         PARTICLE_TYPES.register(modEventBus);
 
-        MinecraftForge.EVENT_BUS.register(this);
-
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
     }
