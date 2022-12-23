@@ -11,7 +11,6 @@ import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import cy.jdkdigital.generatorgalore.common.item.UpgradeItem;
 import cy.jdkdigital.generatorgalore.init.ModBlockEntityTypes;
 import cy.jdkdigital.generatorgalore.init.ModContainerTypes;
-import cy.jdkdigital.generatorgalore.init.ModItemGroups;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -34,11 +33,11 @@ public class GeneratorCreator
             generator.setBlockEntityType(ModBlockEntityTypes.register(name, () -> ModBlockEntityTypes.createBlockEntityType((pos, state) -> new GeneratorBlockEntity(generator, pos, state), generator.getBlockSupplier().get())));
             generator.setMenuType(ModContainerTypes.register(name, GeneratorMenu::new));
 
-            GeneratorGalore.ITEMS.register(name, () -> new BlockItem(generator.getBlockSupplier().get(), new Item.Properties().tab(ModItemGroups.GENERATORGALORE)));
+            GeneratorGalore.ITEMS.register(name, () -> new BlockItem(generator.getBlockSupplier().get(), new Item.Properties()));
 
             if (json.has("previousTier")) {
                 String previousTier = json.get("previousTier").getAsString();
-                GeneratorGalore.ITEMS.register(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", () -> new UpgradeItem(new Item.Properties().tab(ModItemGroups.GENERATORGALORE), previousTier, generator));
+                GeneratorGalore.ITEMS.register(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", () -> new UpgradeItem(new Item.Properties(), previousTier, generator));
             }
 
             // Custom fuels list

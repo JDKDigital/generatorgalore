@@ -4,6 +4,7 @@ import cy.jdkdigital.generatorgalore.cap.ControlledEnergyStorage;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -95,7 +96,7 @@ public class GeneratorMenu extends AbstractContainer
                             blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluidHandler -> {
                                 FluidStack fluid = fluidHandler.getFluidInTank(0);
                                 if (fluid.isEmpty()) {
-                                    fluidHandler.fill(new FluidStack(Registry.FLUID.byId(blockEntity.fluidId), value), IFluidHandler.FluidAction.EXECUTE);
+                                    fluidHandler.fill(new FluidStack(BuiltInRegistries.FLUID.byId(blockEntity.fluidId), value), IFluidHandler.FluidAction.EXECUTE);
                                 } else {
                                     fluid.setAmount(value);
                                 }

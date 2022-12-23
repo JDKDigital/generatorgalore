@@ -1,7 +1,7 @@
 {
   "generationRate": 32,
   "transferRate": 128,
-  "consumptionRate": 1,
+  "consumptionRate": 0.8,
   "previousTier": "iron",
   "bufferCapacity": 30000,
   "fuelType": "SOLID"

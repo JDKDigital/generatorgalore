@@ -14,7 +14,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-    mappings channel: 'parchment', version: '2022.10.16-1.19.2'
+    mappings channel: 'parchment', version: '1.19.2-2022.11.27-1.19.3'
 
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
@@ -110,15 +110,16 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forgeversion}"
 
-    compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
+//    compileOnly fg.deobf("mezz.jei:jei-1.19.2-forge-api:${jei_version}")
+//    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
 
-    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
-    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
-
-    implementation fg.deobf("curse.maven:jade-324717:3916646")
-    implementation fg.deobf("curse.maven:jei-238222:3969039")
-    implementation fg.deobf("curse.maven:productivebees-377897:4018298")
+//
+//    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
+//    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
+//
+//    implementation fg.deobf("curse.maven:jade-324717:3916646")
+//    implementation fg.deobf("curse.maven:jei-238222:3969039")
+//    implementation fg.deobf("curse.maven:productivebees-377897:4018298")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

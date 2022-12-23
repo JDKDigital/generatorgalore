@@ -11,6 +11,7 @@ import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -108,7 +109,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
             protected void onContentsChanged() {
                 super.onContentsChanged();
                 if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-                    fluidId = Registry.FLUID.getId(getFluid().getFluid());
+                    fluidId = BuiltInRegistries.FLUID.getId(getFluid().getFluid());
                     setChanged();
                 }
             }
@@ -304,7 +305,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         // set fluid ID for screens
         if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
             Fluid fluid = fluidInventory.map(fluidHandler -> fluidHandler.getFluidInTank(0).getFluid()).orElse(Fluids.EMPTY);
-            fluidId = Registry.FLUID.getId(fluid);
+            fluidId = BuiltInRegistries.FLUID.getId(fluid);
         }
     }
 }
