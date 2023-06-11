@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
 {
@@ -28,18 +30,18 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
     }
 
     @Override
-    public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(poseStack);
-        super.render(poseStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(poseStack, mouseX, mouseY);
+    public void render(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    protected void renderLabels(@Nonnull PoseStack poseStack, int mouseX, int mouseY) {
-        this.font.draw(poseStack, this.title, 8.0F, 6.0F, 4210752);
-        this.font.draw(poseStack, this.playerInventoryTitle, 8.0F, (float) (this.getYSize() - 96 + 2), 4210752);
+    protected void renderLabels(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.drawString(font, this.title.getString(), 8.0F, 6.0F, 4210752, false);
+        guiGraphics.drawString(font, this.playerInventoryTitle.getString(), 8.0F, (float) (this.getYSize() - 96 + 2), 4210752, false);
 
-        this.font.draw(poseStack, Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", this.menu.blockEntity.generator.getGenerationRate()), this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? 51.0F : 8.0F, 24.0F, 4210752);
+        guiGraphics.drawString(font, Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", this.menu.blockEntity.generator.getGenerationRate()).getString(), this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? 51.0F : 8.0F, 24.0F, 4210752, false);
 
         List<FormattedCharSequence> tooltipList = new ArrayList<>();
         this.menu.blockEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
@@ -70,27 +72,24 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
                 tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.fuel_time", this.menu.blockEntity.litTime).getVisualOrderText());
             }
         }
-        renderTooltip(poseStack, tooltipList, mouseX - getGuiLeft(), mouseY - getGuiTop());
+        guiGraphics.renderTooltip(font, tooltipList, mouseX - getGuiLeft(), mouseY - getGuiTop());
     }
 
     @Override
-    protected void renderBg(@NotNull PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        RenderSystem.setShaderTexture(0, this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? GUI_FLUID : GUI_SOLID);
-        blit(poseStack, getGuiLeft(), getGuiTop(), 0, 0, this.getXSize(), this.getYSize());
+    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        var GUI = this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? GUI_FLUID : GUI_SOLID;
+        guiGraphics.blit(GUI, getGuiLeft(), getGuiTop(), 0, 0, this.getXSize(), this.getYSize());
 
         // Burn progress
         if (this.menu.blockEntity.isLit()) {
             int progress = this.menu.getLitProgress();
-            this.blit(poseStack, getGuiLeft() + 81, getGuiTop() + 50 - progress, 176, 12 - progress, 14, progress);
+            guiGraphics.blit(GUI, getGuiLeft() + 81, getGuiTop() + 50 - progress, 176, 12 - progress, 14, progress);
         }
 
         // Draw energy level
         this.menu.blockEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
             int energyLevel = (int) ((float) handler.getEnergyStored() * 54f / (float) handler.getMaxEnergyStored());
-            blit(poseStack, getGuiLeft() + 134, getGuiTop() + 70 - energyLevel, 176, 70 - energyLevel, 16, energyLevel + 1);
+            guiGraphics.blit(GUI, getGuiLeft() + 134, getGuiTop() + 70 - energyLevel, 176, 70 - energyLevel, 16, energyLevel + 1);
         });
 
         if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
@@ -98,7 +97,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
             this.menu.blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(handler -> {
                 FluidStack fluidStack = handler.getFluidInTank(0);
                 if (fluidStack.getAmount() > 0) {
-                    FluidContainerUtil.renderFluidTank(poseStack, this, fluidStack, handler.getTankCapacity(0), 26, 16, 16, 54, 0);
+                    FluidContainerUtil.renderFluidTank(guiGraphics, this, fluidStack, handler.getTankCapacity(0), 26, 16, 16, 54, 0);
                 }
             });
         }

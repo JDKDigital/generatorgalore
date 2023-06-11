@@ -3,6 +3,7 @@ package cy.jdkdigital.generatorgalore.common.recipe;
 import com.google.gson.JsonObject;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.init.ModRecipeTypes;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -31,7 +32,7 @@ public record SolidFuelRecipe(ResourceLocation id,
     }
 
     @Override
-    public ItemStack assemble(Container pContainer) {
+    public ItemStack assemble(Container pContainer, RegistryAccess registryAccess) {
         return null;
     }
 
@@ -41,7 +42,7 @@ public record SolidFuelRecipe(ResourceLocation id,
     }
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
         return null;
     }
 

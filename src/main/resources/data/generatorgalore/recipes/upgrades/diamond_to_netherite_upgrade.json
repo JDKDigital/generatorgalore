@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:smithing",
+  "type": "minecraft:smithing_transform",
   "base": {
     "item": "generatorgalore:gold_to_diamond_upgrade"
   },
@@ -8,5 +8,8 @@
   },
   "result": {
     "item": "generatorgalore:diamond_to_netherite_upgrade"
+  },
+  "template": {
+    "item": "minecraft:netherite_upgrade_smithing_template"
   }
 }

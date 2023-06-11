@@ -26,6 +26,6 @@ public class ClientEvents
 
     @SubscribeEvent
     public static void registerParticles(final RegisterParticleProvidersEvent event) {
-        event.register(ModParticles.RISING_ENCHANT_PARTICLE.get(), RisingEnchantParticle.Provider::new);
+//        event.registerSpecial(ModParticles.RISING_ENCHANT_PARTICLE.get(), RisingEnchantParticle.Provider::new);
     }
 }
