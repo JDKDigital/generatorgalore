@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:culinary"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:cake"
+    },
+    "E": {
+      "tag": "c:eggs"
+    },
+    "G": {
+      "item": "generatorgalore:gold_generator"
+    },
+    "I": {
+      "tag": "c:crops"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "IGI",
+    "ERE"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:culinary_generator"
+  }
+}

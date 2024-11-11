@@ -1,0 +1,6 @@
+{
+  "parent": "generatorgalore:block/generator_base_8x",
+  "textures": {
+    "frame": "generatorgalore:block/frame_64x"
+  }
+}

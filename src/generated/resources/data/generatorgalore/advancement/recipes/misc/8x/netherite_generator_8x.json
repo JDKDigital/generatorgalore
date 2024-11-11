@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:netherite"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_netherite_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:netherite_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:8x/netherite_generator_8x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_netherite_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:8x/netherite_generator_8x"
+    ]
+  }
+}

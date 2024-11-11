@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:gold"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": {
+      "item": "minecraft:echo_shard"
+    },
+    "I": {
+      "item": "generatorgalore:gold_generator"
+    }
+  },
+  "pattern": [
+    "III",
+    "IFI",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:gold_generator_8x"
+  }
+}

@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/enchantment_generator_side",
-    "face": "generatorgalore:block/enchantment_generator_front",
-    "top": "generatorgalore:block/enchantment_generator_top_off",
-    "bottom": "generatorgalore:block/enchantment_generator_bottom"
-  }
-}

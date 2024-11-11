@@ -5,5 +5,5 @@
   "previousTier": "culinary",
   "bufferCapacity": 500000,
   "fuelType": "FLUID",
-  "fuelTag": "forge:honey"
+  "fuelTag": "c:honey"
 }

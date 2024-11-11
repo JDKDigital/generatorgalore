@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:halitosis"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_halitosis_generator_8x": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:halitosis_generator_8x"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:64x/halitosis_generator_64x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_halitosis_generator_8x"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:64x/halitosis_generator_64x"
+    ]
+  }
+}

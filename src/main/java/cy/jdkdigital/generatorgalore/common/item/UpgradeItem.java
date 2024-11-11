@@ -3,12 +3,12 @@ package cy.jdkdigital.generatorgalore.common.item;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class UpgradeItem extends Item
 {
@@ -25,12 +25,13 @@ public class UpgradeItem extends Item
     public InteractionResult useOn(UseOnContext context) {
         if (!context.getLevel().isClientSide()) {
             BlockState state = context.getLevel().getBlockState(context.getClickedPos());
-            ResourceLocation blockId = ForgeRegistries.BLOCKS.getKey(state.getBlock());
-            if (blockId != null && blockId.getNamespace().equals(GeneratorGalore.MODID) && blockId.getPath().equals(previousTier + "_generator")) {
+            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+            if (blockId.getNamespace().equals(GeneratorGalore.MODID) && blockId.getPath().equals(previousTier + "_generator")) {
                 GeneratorUtil.replaceGenerator(context.getLevel(), context.getClickedPos(), generator);
                 if (!context.getPlayer().isCreative()) {
                     context.getItemInHand().shrink(1);
                 }
+                context.getPlayer().swing(context.getHand());
                 return InteractionResult.CONSUME;
             }
         }

@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/iron_generator_side",
-    "face": "generatorgalore:block/iron_generator_front",
-    "top": "generatorgalore:block/iron_generator_top_off",
-    "bottom": "generatorgalore:block/iron_generator_bottom"
-  }
-}

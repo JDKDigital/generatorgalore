@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/magmatic_generator_side",
-    "face": "generatorgalore:block/magmatic_generator_front",
-    "top": "generatorgalore:block/magmatic_generator_top_off",
-    "bottom": "generatorgalore:block/magmatic_generator_bottom"
-  }
-}

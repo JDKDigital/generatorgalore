@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/gold_generator_side",
-    "face": "generatorgalore:block/gold_generator_front",
-    "top": "generatorgalore:block/gold_generator_top_off",
-    "bottom": "generatorgalore:block/gold_generator_bottom"
-  }
-}

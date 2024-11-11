@@ -3,8 +3,6 @@ package cy.jdkdigital.generatorgalore.client.particle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class RisingEnchantParticle extends TextureSheetParticle
 {
@@ -57,7 +55,6 @@ public class RisingEnchantParticle extends TextureSheetParticle
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<RisingEnchantParticleType> {
         private final SpriteSet sprite;
 

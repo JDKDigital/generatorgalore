@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:enchantment"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": {
+      "item": "minecraft:item_frame"
+    },
+    "I": {
+      "item": "minecraft:enchanted_book"
+    },
+    "R": {
+      "item": "minecraft:enchanting_table"
+    }
+  },
+  "pattern": [
+    "III",
+    "IFI",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:obsidian_to_enchantment_upgrade"
+  }
+}

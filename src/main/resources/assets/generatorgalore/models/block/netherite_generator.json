@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/netherite_generator_side",
-    "face": "generatorgalore:block/netherite_generator_front",
-    "top": "generatorgalore:block/netherite_generator_top_off",
-    "bottom": "generatorgalore:block/netherite_generator_bottom"
-  }
-}

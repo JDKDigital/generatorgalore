@@ -1,0 +1,184 @@
+{
+  "values": [
+    {
+      "id": "generatorgalore:copper_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:copper_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:copper_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:culinary_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:culinary_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:culinary_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:diamond_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:diamond_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:diamond_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:emerald_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:emerald_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:emerald_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:enchantment_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:enchantment_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:enchantment_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:ender_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:ender_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:ender_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:gold_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:gold_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:gold_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:halitosis_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:halitosis_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:halitosis_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:honey_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:honey_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:honey_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:iron_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:iron_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:iron_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:magmatic_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:magmatic_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:magmatic_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherite_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherite_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherite_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherstar_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherstar_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:netherstar_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:obsidian_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:obsidian_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:obsidian_generator_64x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:potion_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:potion_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:potion_generator_64x",
+      "required": false
+    }
+  ]
+}

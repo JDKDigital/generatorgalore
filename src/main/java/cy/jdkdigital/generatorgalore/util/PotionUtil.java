@@ -1,58 +1,59 @@
 package cy.jdkdigital.generatorgalore.util;
 
 import cy.jdkdigital.generatorgalore.util.collection.SetMultiMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.brewing.BrewingRecipe;
-import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
-import net.minecraftforge.common.brewing.IBrewingRecipe;
-import net.minecraftforge.common.brewing.VanillaBrewingRecipe;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.brewing.BrewingRecipe;
+import net.neoforged.neoforge.common.brewing.IBrewingRecipe;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PotionUtil
 {
     public static final Map<String, Integer> brewingStepCache = new HashMap<>();
     private static final SetMultiMap<String, String> potionMap = new SetMultiMap<>();
 
-    public static SetMultiMap<String, String> getPotionMap() {
+    public static SetMultiMap<String, String> getPotionMap(Level level) {
         if (potionMap.allValues().isEmpty()) {
-            Collection<IBrewingRecipe> brewingRecipes = BrewingRecipeRegistry.getRecipes();
+            List<IBrewingRecipe> brewingRecipes = level instanceof ServerLevel serverLevel ? serverLevel.potionBrewing().getRecipes() : PotionBrewing.EMPTY.getRecipes();
             brewingRecipes.stream()
-                    .filter(VanillaBrewingRecipe.class::isInstance)
-                    .map(VanillaBrewingRecipe.class::cast)
+                    .filter(Objects::nonNull)
+                    .map(IBrewingRecipe.class::cast)
                     .findFirst()
                     .ifPresent(vanillaBrewingRecipe -> addVanillaBrewingRecipes(potionMap, vanillaBrewingRecipe));
             addModdedBrewingRecipes(brewingRecipes, potionMap);
-
-            brewingStepCache.put(getUniquePotionName(PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER)), 0);
         }
         return potionMap;
     }
 
-    private static void addVanillaBrewingRecipes(SetMultiMap<String, String> potionMap, VanillaBrewingRecipe vanillaBrewingRecipe) {
-        List<ItemStack> potionIngredients = ForgeRegistries.ITEMS.getValues().stream().map(ItemStack::new).filter(PotionBrewing::isIngredient).toList();
+    private static void addVanillaBrewingRecipes(SetMultiMap<String, String> potionMap, IBrewingRecipe vanillaBrewingRecipe) {
+        List<ItemStack> potionIngredients = BuiltInRegistries.ITEM.stream().map(ItemStack::new).filter(PotionBrewing.EMPTY::isIngredient).toList();
 
-        List<ItemStack> basePotions = PotionBrewing.ALLOWED_CONTAINERS.stream()
-                .flatMap(potionItem -> Arrays.stream(potionItem.getItems()))
-                .toList();
+        List<Item> basePotions = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
 
-        Collection<ItemStack> knownPotions = new ArrayList<>();
-        for (Potion potion : ForgeRegistries.POTIONS.getValues()) {
-            if (potion != Potions.EMPTY) {
-                for (ItemStack input : basePotions) {
-                    ItemStack result = PotionUtils.setPotion(input.copy(), potion);
-                    knownPotions.add(result);
+        List<ItemStack> knownPotions = BuiltInRegistries.POTION.holders().map(potion -> {
+            List<ItemStack> potions = new ArrayList<>();
+            if (potion.value().getEffects().size() > 0) {
+                for (Item input : basePotions) {
+                    ItemStack result = new ItemStack(input);
+                    result.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
+                    potions.add(result);
                 }
             }
-        }
+            return potions;
+        }).flatMap(Collection::stream).collect(Collectors.toCollection(ArrayList::new));
 
         boolean foundNewPotions;
         do {
@@ -62,7 +63,7 @@ public class PotionUtil
         } while (foundNewPotions);
     }
 
-    private static List<ItemStack> getNewPotions(Collection<ItemStack> knownPotions, List<ItemStack> potionReagents, SetMultiMap<String, String> potionMap, VanillaBrewingRecipe vanillaBrewingRecipe) {
+    private static List<ItemStack> getNewPotions(Collection<ItemStack> knownPotions, List<ItemStack> potionReagents, SetMultiMap<String, String> potionMap, IBrewingRecipe vanillaBrewingRecipe) {
         List<ItemStack> newPotions = new ArrayList<>();
         for (ItemStack potionInput : knownPotions) {
             for (ItemStack potionReagent : potionReagents) {
@@ -72,15 +73,13 @@ public class PotionUtil
                 }
 
                 if (potionInput.getItem() == potionOutput.getItem()) {
-                    Potion potionOutputType = PotionUtils.getPotion(potionOutput);
-                    if (potionOutputType == Potions.WATER) {
+                    var potionOutputType = potionOutput.get(DataComponents.POTION_CONTENTS);
+                    if (potionOutputType.potion().get().equals(Potions.WATER)) {
                         continue;
                     }
 
-                    Potion potionInputType = PotionUtils.getPotion(potionInput);
-                    ResourceLocation inputId = ForgeRegistries.POTIONS.getKey(potionInputType);
-                    ResourceLocation outputId = ForgeRegistries.POTIONS.getKey(potionOutputType);
-                    if (Objects.equals(inputId, outputId)) {
+                    var potionInputType = potionInput.get(DataComponents.POTION_CONTENTS);
+                    if (potionInputType.is(potionOutputType.potion().get())) {
                         continue;
                     }
                 }
@@ -110,12 +109,9 @@ public class PotionUtil
     }
 
     public static String getUniquePotionName(ItemStack stack) {
-        StringBuilder potionUid = new StringBuilder(ForgeRegistries.ITEMS.getKey(stack.getItem()).toString());
-        if (stack.getTag() != null) {
-            potionUid.append(stack.getTag().getString("Potion"));
-        } else {
-            var potion = PotionUtils.getPotion(stack);
-            potionUid.append(potion.getName(""));
+        StringBuilder potionUid = new StringBuilder(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+        if (stack.has(DataComponents.POTION_CONTENTS)) {
+            potionUid.append(stack.get(DataComponents.POTION_CONTENTS));
         }
         return potionUid.toString();
     }

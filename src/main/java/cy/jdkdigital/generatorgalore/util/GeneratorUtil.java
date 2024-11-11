@@ -7,6 +7,7 @@ import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.EnchantedBookItem;
@@ -17,9 +18,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -53,7 +53,7 @@ public class GeneratorUtil
             return this.key;
         }
     }
-    public static ResourceLocation EMPTY_TAG = new ResourceLocation(GeneratorGalore.MODID, "empty");
+    public static ResourceLocation EMPTY_TAG = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "empty");
     public static String FUEL_SOLID = "SOLID";
     public static String FUEL_FLUID = "FLUID";
     public static String FUEL_FOOD = "FOOD";
@@ -85,24 +85,23 @@ public class GeneratorUtil
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof GeneratorBlockEntity generatorBlockEntity) {
-            CompoundTag tag = generatorBlockEntity.saveWithoutMetadata();
-            generatorBlockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
-                if (handler instanceof ItemStackHandler itemHandler) {
-                    itemHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, ItemStack.EMPTY);
-                    itemHandler.setStackInSlot(GeneratorMenu.SLOT_CHARGE, ItemStack.EMPTY);
-                }
-            });
+            CompoundTag tag = generatorBlockEntity.saveWithoutMetadata(level.registryAccess());
+
+            if (generatorBlockEntity.inventoryHandler instanceof ItemStackHandler itemHandler) {
+                itemHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, ItemStack.EMPTY);
+                itemHandler.setStackInSlot(GeneratorMenu.SLOT_CHARGE, ItemStack.EMPTY);
+            }
 
             level.setBlockAndUpdate(pos, newGenerator);
-            level.getBlockEntity(pos).load(tag);
+            level.getBlockEntity(pos).loadCustomOnly(tag, level.registryAccess());
         }
     }
 
     public static Pair<Float, Integer> calculateFoodGenerationRate(GeneratorObject generator, ItemStack stack) {
         FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
         if (foodProperties != null) {
-            int value = foodProperties.getNutrition();
-            float saturation = foodProperties.getSaturationModifier();
+            int value = foodProperties.nutrition();
+            float saturation = foodProperties.saturation();
             double totalRF = value * saturation * 8000;
 
             return Pair.of((float) (value * generator.getOriginalGenerationRate()), (int) (totalRF / generator.getGenerationRate()));
@@ -113,18 +112,13 @@ public class GeneratorUtil
     public static Pair<Float, Integer> calculateEnchantmentGenerationRate(GeneratorObject generator, ItemStack stack) {
         if (stack.isEnchanted() || stack.getItem() instanceof EnchantedBookItem) {
             double totalRF = 0;
-            var enchantments = EnchantmentHelper.getEnchantments(stack);
+            var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
             for(var entry : enchantments.entrySet()) {
-                var enchantment = entry.getKey();
+                var enchantment = entry.getKey().value();
                 float level = (float) entry.getValue();
                 float max =(float) enchantment.getMaxLevel();
                 float min = (float) enchantment.getMinCost(entry.getValue());
-                float weight = switch(enchantment.getRarity()) {
-                    case COMMON: yield 10f;
-                    case UNCOMMON: yield 5f;
-                    case RARE: yield 2f;
-                    case VERY_RARE: yield 1f;
-                };
+                float weight = enchantment.getWeight();
 
                 totalRF = totalRF + Math.abs(Math.sqrt(Math.min(level + 1d, max) / max) * Math.pow(max, 2) * (level + 1) * (min/Math.sqrt(weight))) * 400;
             }
@@ -134,14 +128,14 @@ public class GeneratorUtil
         return Pair.of((float) generator.getGenerationRate(), (int) generator.getConsumptionRate());
     }
 
-    public static Pair<Float, Integer> calculatePotionGenerationRate(GeneratorObject generator, ItemStack stack) {
-        int steps = getBrewingSteps(PotionUtil.getUniquePotionName(stack), new HashSet<>());
+    public static Pair<Float, Integer> calculatePotionGenerationRate(Level level, GeneratorObject generator, ItemStack stack) {
+        int steps = getBrewingSteps(level, PotionUtil.getUniquePotionName(stack), new HashSet<>());
         double totalRF = 100 * Math.pow(4, steps);
         return Pair.of((float) generator.getGenerationRate(), (int) (totalRF / generator.getGenerationRate()));
     }
 
-    private static int getBrewingSteps(String potionOutputUid, Set<String> previousSteps) {
-        var potionMap = PotionUtil.getPotionMap();
+    private static int getBrewingSteps(Level level, String potionOutputUid, Set<String> previousSteps) {
+        var potionMap = PotionUtil.getPotionMap(level);
 
         Integer cachedBrewingSteps = PotionUtil.brewingStepCache.get(potionOutputUid);
         if (cachedBrewingSteps != null) {
@@ -154,7 +148,7 @@ public class GeneratorUtil
 
         Collection<String> prevPotions = potionMap.get(potionOutputUid);
         int minPrevSteps = prevPotions.stream()
-                .mapToInt(prevPotion -> getBrewingSteps(prevPotion, previousSteps))
+                .mapToInt(prevPotion -> getBrewingSteps(level, prevPotion, previousSteps))
                 .min()
                 .orElse(Integer.MAX_VALUE);
 

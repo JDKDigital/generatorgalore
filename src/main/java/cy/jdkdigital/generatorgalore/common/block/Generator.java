@@ -1,8 +1,10 @@
 package cy.jdkdigital.generatorgalore.common.block;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
-import cy.jdkdigital.generatorgalore.init.ModParticles;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.ChatFormatting;
@@ -10,19 +12,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
@@ -33,9 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -43,12 +46,28 @@ import java.util.List;
 
 public class Generator extends BaseEntityBlock
 {
-    GeneratorObject generator;
+    public static final MapCodec<Generator> CODEC = RecordCodecBuilder.mapCodec(
+            builder -> builder.group(
+                    propertiesCodec(),
+                    GeneratorObject.codec(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "generator_codec")).fieldOf("generator").forGetter(generator -> generator.generator),
+                    Codec.INT.fieldOf("modifier").forGetter(generator -> generator.modifier)
+            )
+            .apply(builder, Generator::new)
+    );
 
-    public Generator(Properties properties, GeneratorObject generator) {
+    GeneratorObject generator;
+    private final int modifier;
+
+    public Generator(Properties properties, GeneratorObject generator, int modifier) {
         super(properties);
         this.generator = generator;
+        this.modifier = modifier;
         this.registerDefaultState(this.stateDefinition.any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH).setValue(BlockStateProperties.LIT, false));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> stateBuilder) {
@@ -87,21 +106,25 @@ public class Generator extends BaseEntityBlock
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult result) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        final BlockEntity blockEntity = level.getBlockEntity(pos);
-
-        if (blockEntity instanceof GeneratorBlockEntity generatorBlockEntity) {
-            if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && player.getItemInHand(hand).getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent()) {
-                if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, null)) {
-                    return InteractionResult.CONSUME;
-                }
+    protected ItemInteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {
+        if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && pStack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+            if (FluidUtil.interactWithFluidHandler(pPlayer, pHand, pLevel, pPos, null)) {
+                pPlayer.swing(pHand);
+                return ItemInteractionResult.SUCCESS;
             }
-
-            NetworkHooks.openScreen((ServerPlayer) player, generatorBlockEntity, packetBuffer -> packetBuffer.writeBlockPos(pos));
         }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
 
-        return InteractionResult.CONSUME;
+    @Override
+    protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
+        if (pLevel.getBlockEntity(pPos) instanceof GeneratorBlockEntity generatorBlockEntity) {
+            if (!pLevel.isClientSide) {
+                pPlayer.openMenu(generatorBlockEntity, packetBuffer -> packetBuffer.writeBlockPos(pPos));
+            }
+            return InteractionResult.SUCCESS_NO_ITEM_USED;
+        }
+        return super.useWithoutItem(pState, pLevel, pPos, pPlayer, pHitResult);
     }
 
     @Override
@@ -162,19 +185,14 @@ public class Generator extends BaseEntityBlock
 
     @SuppressWarnings("deprecation")
     @Override
-    public void onRemove(BlockState oldState, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (oldState.getBlock() != newState.getBlock()) {
-            BlockEntity tileEntity = worldIn.getBlockEntity(pos);
-            if (tileEntity != null) {
-                // Drop inventory
-                tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
-                    for (int slot = 0; slot < handler.getSlots(); ++slot) {
-                        Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), handler.getStackInSlot(slot));
-                    }
-                });
+    public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (oldState.getBlock() != newState.getBlock() && !level.isClientSide && level.getBlockEntity(pos) instanceof GeneratorBlockEntity generatorBlockEntity) {
+            // Drop inventory
+            for (int slot = 0; slot < generatorBlockEntity.inventoryHandler.getSlots(); ++slot) {
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), generatorBlockEntity.inventoryHandler.getStackInSlot(slot));
             }
         }
-        super.onRemove(oldState, worldIn, pos, newState, isMoving);
+        super.onRemove(oldState, level, pos, newState, isMoving);
     }
 
     @Override
@@ -188,12 +206,16 @@ public class Generator extends BaseEntityBlock
     }
 
     @Override
-    public void appendHoverText(ItemStack pStack, @Nullable BlockGetter pLevel, List<Component> pTooltip, TooltipFlag pFlag) {
-        super.appendHoverText(pStack, pLevel, pTooltip, pFlag);
+    public void appendHoverText(ItemStack pStack, Item.TooltipContext pContext, List<Component> pTootipComponents, TooltipFlag pTooltipFlag) {
+        super.appendHoverText(pStack, pContext, pTootipComponents, pTooltipFlag);
 
-        pTooltip.add(Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", generator.getGenerationRate()).withStyle(ChatFormatting.BLUE));
-        pTooltip.add(Component.translatable(GeneratorGalore.MODID + ".screen.transfer_rate", generator.getTransferRate()).withStyle(ChatFormatting.BLUE));
-        pTooltip.add(Component.translatable(GeneratorGalore.MODID + ".screen.max_energy", generator.getBufferCapacity()).withStyle(ChatFormatting.BLUE));
-        pTooltip.add(Component.translatable(GeneratorGalore.MODID + ".screen.fuel_type", generator.getFuelType()).withStyle(ChatFormatting.BLUE));
+        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", generator.getGenerationRate() * this.modifier).withStyle(ChatFormatting.BLUE));
+        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.transfer_rate", generator.getTransferRate() * this.modifier).withStyle(ChatFormatting.BLUE));
+        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.max_energy", generator.getBufferCapacity() * this.modifier).withStyle(ChatFormatting.BLUE));
+        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.fuel_type", generator.getFuelType().getSerializedName()).withStyle(ChatFormatting.BLUE));
+    }
+
+    public int getModifier() {
+        return modifier;
     }
 }

@@ -15,10 +15,10 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -27,21 +27,21 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
 {
     private final IDrawable background;
     private final IDrawable icon;
-    private final GeneratorObject generator;
+//    private final GeneratorObject generator;
 
-    public SolidFuelRecipeCategory(IGuiHelper guiHelper, GeneratorObject generator) {
-        this.generator = generator;
-        ResourceLocation location = new ResourceLocation(GeneratorGalore.MODID, "textures/gui/jei/solid_fuel_recipe.png");
+    public SolidFuelRecipeCategory(IGuiHelper guiHelper) {
+//        this.generator = generator;
+        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/solid_fuel_recipe.png");
         this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(GeneratorGalore.MODID, this.generator.getId().getPath() + "_generator"))));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "iron_generator"))));
     }
 
     @Override
     public @NotNull RecipeType<SolidFuelRecipe> getRecipeType() {
-        if (!JeiPlugin.FUEL_RECIPE_TYPES.containsKey(generator.getId()) || generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
-            return JeiPlugin.FUEL_RECIPE_TYPES.get(new ResourceLocation(GeneratorGalore.MODID, "generic"));
-        }
-        return JeiPlugin.FUEL_RECIPE_TYPES.get(generator.getId());
+//        if (!JeiPlugin.FUEL_RECIPE_TYPES.containsKey(generator.getId()) || generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
+//            return JeiPlugin.FUEL_RECIPE_TYPES.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "generic"));
+//        }
+        return JeiPlugin.SOLID_FUEL_RECIPE_TYPE;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
     public void draw(@NotNull SolidFuelRecipe recipe, @NotNull IRecipeSlotsView recipeSlotsView, @NotNull GuiGraphics poseStack, double mouseX, double mouseY) {
         Minecraft minecraft = Minecraft.getInstance();
         poseStack.drawString(minecraft.font, "Rate: " + recipe.rate() + "FE/t", 37F, 14F, 4210752, false);
-        poseStack.drawString(minecraft.font, "Burntime: " + recipe.burnTime(), 37F, 32F, 4210752, false);
-        poseStack.drawString(minecraft.font, "Total: " + (int) (recipe.rate() * recipe.burnTime()) + "FE", 37F, 50F, 4210752, false);
+        poseStack.drawString(minecraft.font, "Burntime: " + recipe.consumptionRate(), 37F, 32F, 4210752, false);
+        poseStack.drawString(minecraft.font, "Total: " + (int) (recipe.rate() * recipe.consumptionRate()) + "FE", 37F, 50F, 4210752, false);
     }
 }

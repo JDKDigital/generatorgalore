@@ -3,11 +3,13 @@ package cy.jdkdigital.generatorgalore.registry;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
+import cy.jdkdigital.generatorgalore.init.ModBlockEntityTypes;
 import cy.jdkdigital.generatorgalore.util.GeneratorCreator;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.fml.ModList;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -57,7 +59,7 @@ public class GeneratorRegistry
                 reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
                 json = parser.parse(reader).getAsJsonObject();
                 var name = file.getName().replace(".json", "");
-                id = new ResourceLocation(GeneratorGalore.MODID, name);
+                id = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, name);
 
                 if (json.has("requiredMod") && !ModList.get().isLoaded(json.get("requiredMod").getAsString())) {
                     continue;
@@ -79,6 +81,8 @@ public class GeneratorRegistry
                 GeneratorGalore.LOGGER.error("failed to load generator " + id);
             }
         }
+
+//        ModBlockEntityTypes.registerGeneratorBlockEntities();
     }
 
     public static void setupDefaultFiles(String dataPath, Path targetPath, boolean override) {

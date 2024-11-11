@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:obsidian"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_diamond_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:diamond_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:upgrades/diamond_to_obsidian_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_diamond_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:upgrades/diamond_to_obsidian_upgrade"
+    ]
+  }
+}

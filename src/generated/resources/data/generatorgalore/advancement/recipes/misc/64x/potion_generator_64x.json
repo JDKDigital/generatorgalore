@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:potion"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_potion_generator_8x": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:potion_generator_8x"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:64x/potion_generator_64x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_potion_generator_8x"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:64x/potion_generator_64x"
+    ]
+  }
+}

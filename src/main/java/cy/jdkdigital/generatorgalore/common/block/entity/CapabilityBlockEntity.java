@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.common.block.entity;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
@@ -11,10 +12,10 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class CapabilityBlockEntity extends BlockEntity implements MenuProvider, Nameable
@@ -24,20 +25,20 @@ public abstract class CapabilityBlockEntity extends BlockEntity implements MenuP
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        this.loadPacketNBT(tag);
+    protected void loadAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
+        super.loadAdditional(pTag, pRegistries);
+        this.loadPacketNBT(pTag, pRegistries);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        this.savePacketNBT(tag);
+    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
+        super.saveAdditional(pTag, pRegistries);
+        this.savePacketNBT(pTag, pRegistries);
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
-        return saveWithId();
+    public CompoundTag getUpdateTag(HolderLookup.Provider pRegistries) {
+        return saveWithId(pRegistries);
     }
 
     @Override
@@ -46,9 +47,9 @@ public abstract class CapabilityBlockEntity extends BlockEntity implements MenuP
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        super.onDataPacket(net, pkt);
-        this.loadPacketNBT(pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
+        super.onDataPacket(net, pkt, lookupProvider);
+        this.loadPacketNBT(pkt.getTag(), lookupProvider);
         if (level instanceof ClientLevel) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 0);
         }
@@ -59,38 +60,7 @@ public abstract class CapabilityBlockEntity extends BlockEntity implements MenuP
         return getName();
     }
 
-    public void savePacketNBT(CompoundTag tag) {
-        getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> {
-            CompoundTag compound = ((ItemStackHandler) inv).serializeNBT();
-            tag.put("inv", compound);
-        });
+    public abstract void savePacketNBT(CompoundTag tag, HolderLookup.Provider pRegistries);
 
-        getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
-            tag.put("energy", ((EnergyStorage) handler).serializeNBT());
-        });
-
-        getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluid -> {
-            CompoundTag nbt = new CompoundTag();
-            ((FluidTank) fluid).writeToNBT(nbt);
-            tag.put("fluid", nbt);
-        });
-    }
-
-    public void loadPacketNBT(CompoundTag tag) {
-        if (tag.contains("inv")) {
-            getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inv -> ((ItemStackHandler) inv).deserializeNBT(tag.getCompound("inv")));
-        }
-
-        if (tag.contains("energy")) {
-            getCapability(ForgeCapabilities.ENERGY).ifPresent(handler -> {
-                ((EnergyStorage) handler).deserializeNBT(tag.get("energy"));
-            });
-        }
-
-        if (tag.contains("fluid")) {
-            getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(fluid -> {
-                ((FluidTank) fluid).readFromNBT(tag.getCompound("fluid"));
-            });
-        }
-    }
+    public abstract void loadPacketNBT(CompoundTag tag, HolderLookup.Provider pRegistries);
 }

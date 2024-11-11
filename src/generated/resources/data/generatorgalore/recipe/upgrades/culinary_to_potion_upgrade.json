@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:potion"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:brewing_stand"
+    },
+    "F": {
+      "item": "minecraft:item_frame"
+    },
+    "I": {
+      "tag": "c:dyed/pink"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "III",
+    "IFI",
+    "BRB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:culinary_to_potion_upgrade"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:enchantment"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_enchantment_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:enchantment_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:8x/enchantment_generator_8x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_enchantment_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:8x/enchantment_generator_8x"
+    ]
+  }
+}

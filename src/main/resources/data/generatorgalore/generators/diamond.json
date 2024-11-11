@@ -4,5 +4,6 @@
   "consumptionRate": 0.6,
   "previousTier": "gold",
   "bufferCapacity": 100000,
-  "fuelType": "SOLID"
+  "fuelType": "SOLID",
+  "has64x": false
 }

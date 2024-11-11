@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/netherstar_generator_side",
-    "face": "generatorgalore:block/netherstar_generator_front",
-    "top": "generatorgalore:block/netherstar_generator_top_off",
-    "bottom": "generatorgalore:block/netherstar_generator_bottom"
-  }
-}

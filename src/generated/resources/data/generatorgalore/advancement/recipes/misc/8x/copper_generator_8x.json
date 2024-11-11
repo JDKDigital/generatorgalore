@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:copper"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_copper_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:copper_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:8x/copper_generator_8x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_copper_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:8x/copper_generator_8x"
+    ]
+  }
+}

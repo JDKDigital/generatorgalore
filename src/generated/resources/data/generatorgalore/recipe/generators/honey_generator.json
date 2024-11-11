@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:honey"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "G": {
+      "item": "generatorgalore:culinary_generator"
+    },
+    "I": {
+      "item": "minecraft:honey_block"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "III",
+    "IGI",
+    "BRB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:honey_generator"
+  }
+}

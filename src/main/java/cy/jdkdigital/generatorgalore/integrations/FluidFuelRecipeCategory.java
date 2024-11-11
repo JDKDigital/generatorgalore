@@ -4,21 +4,21 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.recipe.FluidFuelRecipe;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -27,18 +27,16 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
 {
     private final IDrawable background;
     private final IDrawable icon;
-    private final GeneratorObject generator;
 
-    public FluidFuelRecipeCategory(IGuiHelper guiHelper, GeneratorObject generator) {
-        this.generator = generator;
-        ResourceLocation location = new ResourceLocation(GeneratorGalore.MODID, "textures/gui/jei/fluid_fuel_recipe.png");
+    public FluidFuelRecipeCategory(IGuiHelper guiHelper) {
+        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/fluid_fuel_recipe.png");
         this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(GeneratorGalore.MODID, this.generator.getId().getPath() + "_generator"))));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic_generator"))));
     }
 
     @Override
     public @NotNull RecipeType<FluidFuelRecipe> getRecipeType() {
-        return JeiPlugin.FLUID_FUEL_RECIPE_TYPES.get(generator.getId());
+        return JeiPlugin.FLUID_FUEL_RECIPE_TYPE;
     }
 
     @Override
@@ -62,7 +60,7 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
                 .addItemStacks(Arrays.asList(recipe.generator().getItems()))
                 .setSlotName("generator");
         builder.addSlot(RecipeIngredientRole.INPUT, 18, 3)
-                .addIngredients(ForgeTypes.FLUID_STACK, recipe.fuels())
+                .addIngredients(NeoForgeTypes.FLUID_STACK, recipe.fuels())
                 .setFluidRenderer(10000, true, 16, 54)
                 .setSlotName("fuels");
     }

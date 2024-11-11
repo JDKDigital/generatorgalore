@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:honey"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "F": {
+      "item": "minecraft:item_frame"
+    },
+    "I": {
+      "item": "minecraft:honey_block"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "III",
+    "IFI",
+    "BRB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:culinary_to_honey_upgrade"
+  }
+}

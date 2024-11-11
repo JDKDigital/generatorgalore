@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "id": "generatorgalore:magmatic_generator",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:magmatic_generator_8x",
+      "required": false
+    },
+    {
+      "id": "generatorgalore:magmatic_generator_64x",
+      "required": false
+    }
+  ]
+}

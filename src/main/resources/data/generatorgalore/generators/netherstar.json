@@ -5,5 +5,5 @@
   "previousTier": "netherite",
   "bufferCapacity": 9800000,
   "fuelType": "SOLID",
-  "fuelTag": "forge:nether_stars"
+  "fuelTag": "c:nether_stars"
 }

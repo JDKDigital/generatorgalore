@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:magmatic"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_magmatic_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:magmatic_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:8x/magmatic_generator_8x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_magmatic_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:8x/magmatic_generator_8x"
+    ]
+  }
+}

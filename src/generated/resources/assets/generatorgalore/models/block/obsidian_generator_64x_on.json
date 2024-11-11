@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/obsidian_generator_64x",
+  "textures": {
+    "front": "generatorgalore:block/generator_on_glow",
+    "top": "generatorgalore:block/obsidian_generator_top_on"
+  }
+}

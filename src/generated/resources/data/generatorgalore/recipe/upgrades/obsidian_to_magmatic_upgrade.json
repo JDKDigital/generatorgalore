@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:magmatic"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": {
+      "item": "minecraft:item_frame"
+    },
+    "I": {
+      "tag": "c:ingots/gold"
+    },
+    "R": {
+      "tag": "c:buckets/lava"
+    }
+  },
+  "pattern": [
+    "III",
+    "IFI",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:obsidian_to_magmatic_upgrade"
+  }
+}

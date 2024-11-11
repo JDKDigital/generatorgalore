@@ -1,0 +1,39 @@
+{
+  "parent": "generatorgalore:block/generator_base",
+  "textures": {
+    "frame": "generatorgalore:block/frame_8x"
+  },
+  "elements": [
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#bottom", "cullface": "down" },
+        "up":    { "texture": "#top", "cullface": "up" },
+        "north": { "texture": "#face", "cullface": "north" },
+        "south": { "texture": "#back", "cullface": "south" },
+        "west":  { "texture": "#side", "cullface": "west" },
+        "east":  { "texture": "#side", "cullface": "east" }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "north": { "uv": [ 0, 0, 16, 16 ], "texture": "#front", "cullface": "north", "emissivity": 15 }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#frame", "cullface": "down" },
+        "up":    { "texture": "#frame", "cullface": "up" },
+        "north": { "texture": "#frame", "cullface": "north" },
+        "south": { "texture": "#frame", "cullface": "south" },
+        "west":  { "texture": "#frame", "cullface": "west" },
+        "east":  { "texture": "#frame", "cullface": "east" }
+      }
+    }
+  ]
+}

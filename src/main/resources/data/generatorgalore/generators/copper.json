@@ -4,5 +4,6 @@
   "hasChargeSlot": false,
   "consumptionRate": 1.2,
   "bufferCapacity": 5000,
-  "fuelType": "SOLID"
+  "fuelType": "SOLID",
+  "has64x": false
 }

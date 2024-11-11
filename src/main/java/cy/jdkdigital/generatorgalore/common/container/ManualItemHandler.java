@@ -1,7 +1,7 @@
 package cy.jdkdigital.generatorgalore.common.container;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualItemHandler extends ItemStackHandler

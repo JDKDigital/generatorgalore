@@ -5,5 +5,6 @@
   "consumptionRate": 1,
   "previousTier": "copper",
   "bufferCapacity": 10000,
-  "fuelType": "SOLID"
+  "fuelType": "SOLID",
+  "has64x": false
 }

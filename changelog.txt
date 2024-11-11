@@ -1,34 +1,35 @@
-1.20.1-1.2.4
+1.21.0-1.3.4
 
-- Generators will now only burn fuel if the internal energy buffer has room for the entire burn
-
-
-1.20.1-1.2.3
-
-- No more duping stuff
+- Fixed diamond and emerald generator recipes
 
 
-1.20.1-1.2.2
+1.21.0-1.3.3
 
-- Fixed JEi integration
-
-
-1.20.1-1.2.1
-
-- Added honey generator
+- Fixed honey generator fluid fuel tag
 
 
-1.20.1-1.2.0
+1.21.0-1.3.2
 
-- Added charging slot in higher tier generators for charging items
-
-
-1.20.1-1.1.0
-
-- Fixed creative tab ordering
-- New generator designs made by the talented artists from TerrariumEarth and sponsored by the ATM team
+- Fixed crash with potion generator on some java installations
 
 
-1.20.0-1.0.5
+1.21.0-1.3.1
 
-- Port to 1.20
+- Disabled recipes for inactive generators
+
+
+1.21.0-1.3.0
+
+- Added 8x and 64x variants of some generators (configs must be reset)
+- Fixed inventory not dropping when generators are broken
+
+
+1.21.0-1.2.5
+
+- Fixed loot tables so generators drop when mined
+- Fixed right click interaction
+
+
+1.21.0-1.2.4
+
+- Ported to 1.21

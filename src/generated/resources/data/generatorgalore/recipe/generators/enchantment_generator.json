@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:enchantment"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "generatorgalore:obsidian_generator"
+    },
+    "I": {
+      "item": "minecraft:enchanted_book"
+    },
+    "R": {
+      "item": "minecraft:enchanting_table"
+    }
+  },
+  "pattern": [
+    "III",
+    "IGI",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "generatorgalore:enchantment_generator"
+  }
+}

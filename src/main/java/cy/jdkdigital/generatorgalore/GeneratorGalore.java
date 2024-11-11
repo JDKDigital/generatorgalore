@@ -1,8 +1,12 @@
 package cy.jdkdigital.generatorgalore;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.MapCodec;
+import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
+import cy.jdkdigital.generatorgalore.common.conditions.GeneratorExistsCondition;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -15,15 +19,21 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.IBlockCapabilityProvider;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.slf4j.Logger;
 
 @Mod(GeneratorGalore.MODID)
@@ -32,26 +42,26 @@ public class GeneratorGalore
     public static final String MODID = "generatorgalore";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, GeneratorGalore.MODID);
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, GeneratorGalore.MODID);
-    public static final DeferredRegister<MenuType<?>> CONTAINER_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, GeneratorGalore.MODID);
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, GeneratorGalore.MODID);
-    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, GeneratorGalore.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, GeneratorGalore.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, GeneratorGalore.MODID);
+    public static final DeferredRegister<MenuType<?>> CONTAINER_TYPES = DeferredRegister.create(Registries.MENU, GeneratorGalore.MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, GeneratorGalore.MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, GeneratorGalore.MODID);
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, GeneratorGalore.MODID);
-    public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, GeneratorGalore.MODID);
+    public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, GeneratorGalore.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, GeneratorGalore.MODID);
+    public static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS = DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, MODID);
 
-    public static RegistryObject<CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> {
+    public static DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> {
         return CreativeModeTab.builder()
                 .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
-                .icon(() -> new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(MODID, "iron_generator"))))
+                .icon(() -> new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(MODID, "iron_generator"))))
                 .title(Component.literal("Generator Galore"))
                 .build();
     });
+    public static final DeferredHolder<MapCodec<? extends ICondition>, MapCodec<GeneratorExistsCondition>> GENERATOR_EXISTS_CONDITION = CONDITION_CODECS.register("generator_exists", () -> GeneratorExistsCondition.CODEC);
 
-    public GeneratorGalore() {
-        var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
+    public GeneratorGalore(IEventBus modEventBus, ModContainer modContainer) {
         GeneratorRegistry.discoverGenerators();
 
         BLOCKS.register(modEventBus);
@@ -62,25 +72,47 @@ public class GeneratorGalore
         RECIPE_TYPES.register(modEventBus);
         PARTICLE_TYPES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
+        CONDITION_CODECS.register(modEventBus);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
+        modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
 
         /**
          * Jade/TOP integration to show how much burn time is left
          */
     }
 
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = MODID)
+    @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = MODID)
     public static class EventHandler
     {
         @SubscribeEvent
         public static void buildContents(BuildCreativeModeTabContentsEvent event) {
             if (event.getTab().equals(TAB.get())) {
-                for (RegistryObject<Item> item: GeneratorGalore.ITEMS.getEntries()) {
-                    event.accept(item);
+                for (DeferredHolder<Item, ? extends Item> item: GeneratorGalore.ITEMS.getEntries()) {
+                    event.accept(item.get());
                 }
             }
+        }
+
+        @SubscribeEvent
+        public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+            GeneratorRegistry.generators.values().forEach(generatorObject -> {
+                event.registerBlockEntity(
+                        Capabilities.ItemHandler.BLOCK,
+                        generatorObject.getBlockEntityType().get(),
+                        (myBlockEntity, side) -> myBlockEntity.inventoryHandler
+                );
+                event.registerBlockEntity(
+                        Capabilities.EnergyStorage.BLOCK,
+                        generatorObject.getBlockEntityType().get(),
+                        (myBlockEntity, side) -> myBlockEntity.energyHandler
+                );
+                event.registerBlockEntity(
+                        Capabilities.FluidHandler.BLOCK,
+                        generatorObject.getBlockEntityType().get(),
+                        (myBlockEntity, side) -> myBlockEntity.fluidInventory
+                );
+            });
         }
     }
 }

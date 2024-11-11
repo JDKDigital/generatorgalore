@@ -1,6 +1,6 @@
 package cy.jdkdigital.generatorgalore.cap;
 
-import net.minecraftforge.energy.EnergyStorage;
+import net.neoforged.neoforge.energy.EnergyStorage;
 
 public class ControlledEnergyStorage extends EnergyStorage
 {

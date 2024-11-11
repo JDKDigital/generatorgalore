@@ -1,18 +1,15 @@
 package cy.jdkdigital.generatorgalore.common.recipe;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.init.ModRecipeTypes;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
@@ -20,19 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public record SolidFuelRecipe(ResourceLocation id,
-                              List<Ingredient> fuels,
-                              Ingredient generator, float rate,
-                              int burnTime) implements Recipe<Container>
+public record SolidFuelRecipe(List<Ingredient> fuels, Ingredient generator, float rate, float consumptionRate) implements Recipe<RecipeInput>
 {
-
     @Override
-    public boolean matches(Container pContainer, Level pLevel) {
+    public boolean matches(RecipeInput pContainer, Level pLevel) {
         return false;
     }
 
     @Override
-    public ItemStack assemble(Container pContainer, RegistryAccess registryAccess) {
+    public ItemStack assemble(RecipeInput pContainer, HolderLookup.Provider registryAccess) {
         return null;
     }
 
@@ -42,13 +35,8 @@ public record SolidFuelRecipe(ResourceLocation id,
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registryAccess) {
         return null;
-    }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
     }
 
     @Override
@@ -61,54 +49,58 @@ public record SolidFuelRecipe(ResourceLocation id,
         return ModRecipeTypes.SOLID_FUEL_TYPE.get();
     }
 
-    public static class Serializer<T extends SolidFuelRecipe> implements RecipeSerializer<T>
+    public static class Serializer implements RecipeSerializer<SolidFuelRecipe>
     {
-        final IRecipeFactory<T> factory;
+        private static final MapCodec<SolidFuelRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                builder -> builder.group(
+                                Ingredient.CODEC.listOf().fieldOf("fuels").orElse(List.of()).forGetter(recipe -> recipe.fuels),
+                                Ingredient.CODEC.fieldOf("generator").forGetter(recipe -> recipe.generator),
+                                Codec.FLOAT.fieldOf("rate").forGetter(recipe -> recipe.rate),
+                                Codec.FLOAT.fieldOf("consumptionRate").forGetter(recipe -> recipe.consumptionRate)
+                        )
+                        .apply(builder, SolidFuelRecipe::new)
+        );
 
-        public Serializer(Serializer.IRecipeFactory<T> factory) {
-            this.factory = factory;
-        }
+        public static final StreamCodec<RegistryFriendlyByteBuf, SolidFuelRecipe> STREAM_CODEC = StreamCodec.of(
+                SolidFuelRecipe.Serializer::toNetwork, SolidFuelRecipe.Serializer::fromNetwork
+        );
 
-        @Nonnull
         @Override
-        public T fromJson(ResourceLocation id, JsonObject json) {
-            Ingredient generator = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "generator"));
-            float rate = GsonHelper.getAsFloat(json, "rate");
-            int burnTime = GsonHelper.getAsInt(json, "consumptionRate");
-            return this.factory.create(id, new ArrayList<>(), generator, rate, burnTime);
+        public MapCodec<SolidFuelRecipe> codec() {
+            return CODEC;
         }
 
-        public T fromNetwork(@Nonnull ResourceLocation id, @Nonnull FriendlyByteBuf buffer) {
+        @Override
+        public StreamCodec<RegistryFriendlyByteBuf, SolidFuelRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        public static SolidFuelRecipe fromNetwork(@Nonnull RegistryFriendlyByteBuf buffer) {
             try {
                 List<Ingredient> fuels = new ArrayList<>();
                 IntStream.range(0, buffer.readInt()).forEach(
-                    i -> fuels.add(Ingredient.fromNetwork(buffer))
+                    i -> fuels.add(Ingredient.CONTENTS_STREAM_CODEC.decode(buffer))
                 );
-                return this.factory.create(id, fuels, Ingredient.fromNetwork(buffer), buffer.readFloat(), buffer.readInt());
+                return new SolidFuelRecipe(fuels, Ingredient.CONTENTS_STREAM_CODEC.decode(buffer), buffer.readFloat(), buffer.readInt());
             } catch (Exception e) {
-                GeneratorGalore.LOGGER.error("Error reading solid fuels recipe from packet. " + id, e);
+                GeneratorGalore.LOGGER.error("Error reading solid fuels recipe from packet. ", e);
                 throw e;
             }
         }
 
-        public void toNetwork(@Nonnull FriendlyByteBuf buffer, T recipe) {
+        public static void toNetwork(@Nonnull RegistryFriendlyByteBuf buffer, SolidFuelRecipe recipe) {
             try {
                 buffer.writeInt(recipe.fuels().size());
                 recipe.fuels().forEach(fuel -> {
-                    fuel.toNetwork(buffer);
+                    Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, fuel);
                 });
-                recipe.generator().toNetwork(buffer);
+                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.generator());
                 buffer.writeFloat(recipe.rate());
-                buffer.writeInt(recipe.burnTime());
+                buffer.writeFloat(recipe.consumptionRate());
             } catch (Exception e) {
-                GeneratorGalore.LOGGER.error("Error writing solid fuels recipe to packet. " + recipe.getId(), e);
+                GeneratorGalore.LOGGER.error("Error writing solid fuels recipe to packet.", e);
                 throw e;
             }
-        }
-
-        public interface IRecipeFactory<T extends SolidFuelRecipe>
-        {
-            T create(ResourceLocation id, List<Ingredient> fuel, Ingredient generator, float rate, int burnTime);
         }
     }
 }

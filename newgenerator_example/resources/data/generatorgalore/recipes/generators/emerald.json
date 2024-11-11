@@ -10,10 +10,10 @@
       "item": "generatorgalore:diamond_generator"
     },
     "I": {
-      "tag": "forge:gems/emerald"
+      "tag": "c:gems/emerald"
     },
     "R": {
-      "tag": "forge:storage_blocks/redstone"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {

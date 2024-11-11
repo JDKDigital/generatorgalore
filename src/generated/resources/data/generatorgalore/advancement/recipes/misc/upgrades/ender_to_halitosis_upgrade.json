@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:halitosis"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ender_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:ender_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:upgrades/ender_to_halitosis_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ender_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:upgrades/ender_to_halitosis_upgrade"
+    ]
+  }
+}

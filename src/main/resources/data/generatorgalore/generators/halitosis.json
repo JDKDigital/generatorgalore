@@ -1,5 +1,5 @@
 {
-  "generationRate": 40,
+  "generationRate": 128,
   "transferRate": 16384,
   "consumptionRate": 1,
   "previousTier": "ender",

@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "generatorgalore:generator_exists",
+      "generator": "generatorgalore:netherstar"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_netherstar_generator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "generatorgalore:netherstar_generator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "generatorgalore:8x/netherstar_generator_8x"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_netherstar_generator"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "generatorgalore:8x/netherstar_generator_8x"
+    ]
+  }
+}

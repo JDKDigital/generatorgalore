@@ -1,0 +1,7 @@
+{
+  "parent": "generatorgalore:block/gold_generator_8x",
+  "textures": {
+    "front": "generatorgalore:block/generator_on_glow",
+    "top": "generatorgalore:block/gold_generator_top_on"
+  }
+}

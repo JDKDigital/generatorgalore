@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/halitosis_generator_side",
-    "face": "generatorgalore:block/halitosis_generator_front",
-    "top": "generatorgalore:block/halitosis_generator_top_off",
-    "bottom": "generatorgalore:block/halitosis_generator_bottom"
-  }
-}

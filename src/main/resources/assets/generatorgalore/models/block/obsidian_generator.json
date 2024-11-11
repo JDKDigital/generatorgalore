@@ -1,9 +1,0 @@
-{
-  "parent": "generatorgalore:block/generator_new",
-  "textures": {
-    "side": "generatorgalore:block/obsidian_generator_side",
-    "face": "generatorgalore:block/obsidian_generator_front",
-    "top": "generatorgalore:block/obsidian_generator_top_off",
-    "bottom": "generatorgalore:block/obsidian_generator_bottom"
-  }
-}

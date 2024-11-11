@@ -1,0 +1,9 @@
+{
+  "parent": "generatorgalore:block/generator_base_64x",
+  "textures": {
+    "bottom": "generatorgalore:block/culinary_generator_bottom",
+    "face": "generatorgalore:block/culinary_generator_front",
+    "side": "generatorgalore:block/culinary_generator_side",
+    "top": "generatorgalore:block/culinary_generator_top_off"
+  }
+}
