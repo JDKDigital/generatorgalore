@@ -87,7 +87,7 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
         guiGraphics.blit(GUI, getGuiLeft() + 134, getGuiTop() + 70 - energyLevel, 176, 70 - energyLevel, 16, energyLevel + 1);
 
         if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-            // Draw fluid tank
+            // Draw item tank
             FluidStack fluidStack = this.menu.blockEntity.fluidInventory.getFluidInTank(0);
             if (fluidStack.getAmount() > 0) {
                 FluidContainerUtil.renderFluidTank(guiGraphics, this, fluidStack, this.menu.blockEntity.fluidInventory.getTankCapacity(0), 26, 16, 16, 54, 100);

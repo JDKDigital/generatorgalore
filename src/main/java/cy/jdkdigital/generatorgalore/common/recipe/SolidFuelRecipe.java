@@ -7,6 +7,7 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.init.ModRecipeTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public record SolidFuelRecipe(List<Ingredient> fuels, Ingredient generator, float rate, float consumptionRate) implements Recipe<RecipeInput>
+public record SolidFuelRecipe(List<Ingredient> fuels, ItemStack generator, float rate, float consumptionRate) implements Recipe<RecipeInput>
 {
     @Override
     public boolean matches(RecipeInput pContainer, Level pLevel) {
@@ -54,7 +55,7 @@ public record SolidFuelRecipe(List<Ingredient> fuels, Ingredient generator, floa
         private static final MapCodec<SolidFuelRecipe> CODEC = RecordCodecBuilder.mapCodec(
                 builder -> builder.group(
                                 Ingredient.CODEC.listOf().fieldOf("fuels").orElse(List.of()).forGetter(recipe -> recipe.fuels),
-                                Ingredient.CODEC.fieldOf("generator").forGetter(recipe -> recipe.generator),
+                                ItemStack.CODEC.fieldOf("generator").forGetter(recipe -> recipe.generator),
                                 Codec.FLOAT.fieldOf("rate").forGetter(recipe -> recipe.rate),
                                 Codec.FLOAT.fieldOf("consumptionRate").forGetter(recipe -> recipe.consumptionRate)
                         )
@@ -77,11 +78,7 @@ public record SolidFuelRecipe(List<Ingredient> fuels, Ingredient generator, floa
 
         public static SolidFuelRecipe fromNetwork(@Nonnull RegistryFriendlyByteBuf buffer) {
             try {
-                List<Ingredient> fuels = new ArrayList<>();
-                IntStream.range(0, buffer.readInt()).forEach(
-                    i -> fuels.add(Ingredient.CONTENTS_STREAM_CODEC.decode(buffer))
-                );
-                return new SolidFuelRecipe(fuels, Ingredient.CONTENTS_STREAM_CODEC.decode(buffer), buffer.readFloat(), buffer.readInt());
+                return new SolidFuelRecipe(Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer), ItemStack.STREAM_CODEC.decode(buffer), buffer.readFloat(), buffer.readInt());
             } catch (Exception e) {
                 GeneratorGalore.LOGGER.error("Error reading solid fuels recipe from packet. ", e);
                 throw e;
@@ -90,11 +87,8 @@ public record SolidFuelRecipe(List<Ingredient> fuels, Ingredient generator, floa
 
         public static void toNetwork(@Nonnull RegistryFriendlyByteBuf buffer, SolidFuelRecipe recipe) {
             try {
-                buffer.writeInt(recipe.fuels().size());
-                recipe.fuels().forEach(fuel -> {
-                    Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, fuel);
-                });
-                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.generator());
+                Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, recipe.fuels());
+                ItemStack.STREAM_CODEC.encode(buffer, recipe.generator());
                 buffer.writeFloat(recipe.rate());
                 buffer.writeFloat(recipe.consumptionRate());
             } catch (Exception e) {

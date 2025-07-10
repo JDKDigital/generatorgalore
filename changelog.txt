@@ -1,4 +1,26 @@
-1.21.0-1.3.4
+1.21.1-1.6.1
+
+- Fixed default generator files not being generated
+
+
+1.21.1-1.6.0
+
+- Added config for generator consumption rate being affected by generator modifier
+- Fixed JEI plugin
+
+
+1.21.1-1.5.0
+
+- Fixed generators querying capabilities from the wrong direction
+
+
+1.21.1-1.4.0
+
+- Added datamaps for generator fuels
+- Only expose relevant capabilities for the generator
+
+
+1.21.1-1.3.4
 
 - Fixed diamond and emerald generator recipes
 

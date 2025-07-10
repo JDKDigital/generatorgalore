@@ -1,15 +1,25 @@
 package cy.jdkdigital.generatorgalore.util;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
+import cy.jdkdigital.generatorgalore.init.ModTags;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -25,6 +35,7 @@ public class GeneratorObject
     private final double generationRate;
     private double modifiedGenerationRate =  0;
     private final double transferRate;
+    private double modifiedConsumptionRate;
     private final double consumptionRate;
     private final int bufferCapacity;
     private final boolean hasChargeSlot;
@@ -90,20 +101,28 @@ public class GeneratorObject
         return modifiedGenerationRate > 0 ? modifiedGenerationRate : generationRate;
     }
 
+    public double getConsumptionRate() {
+        return modifiedConsumptionRate > 0 ? modifiedConsumptionRate : consumptionRate;
+    }
+
     public void setGenerationRate(double generationRate) {
         this.modifiedGenerationRate = generationRate;
+    }
+
+    public void setConsumptionRate(double consumptionRate) {
+        this.modifiedConsumptionRate = consumptionRate;
     }
 
     public double getOriginalGenerationRate() {
         return generationRate;
     }
 
-    public double getTransferRate() {
-        return transferRate;
+    public double getOriginalConsumptionRate() {
+        return consumptionRate;
     }
 
-    public double getConsumptionRate() {
-        return consumptionRate;
+    public double getTransferRate() {
+        return transferRate;
     }
 
     public int getBufferCapacity() {
@@ -147,5 +166,80 @@ public class GeneratorObject
 
     public boolean has64x() {
         return has64x;
+    }
+
+    public boolean isValidFuelItem(@NotNull ItemStack stack) {
+        var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.SOLID_FUEL_MAP);
+        if (fuelData != null) {
+            return !fuelData.fuels().stream().filter(solidFuel -> solidFuel.item().test(stack)).toList().isEmpty();
+        }
+
+        if (!getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
+            return stack.is(ModTags.getItemTag(getFuelTag()));
+        }
+        if (getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
+            return stack.getItem().getFoodProperties(stack, null) != null;
+        }
+        if (getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
+            return !EnchantmentHelper.getEnchantmentsForCrafting(stack).isEmpty();
+        }
+        if (getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
+            return stack.getItem() instanceof PotionItem;
+        }
+        if (getFuelList() != null) {
+            return getFuelList().containsKey(BuiltInRegistries.ITEM.getKey(stack.getItem()));
+        }
+
+        return stack.getBurnTime(RecipeType.SMELTING) > 0;
+    }
+
+    public boolean isValidFuelFluid(FluidStack stack) {
+        var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
+        if (fuelData != null) {
+            return !fuelData.fuels().stream().filter(solidFuel -> solidFuel.fluid().test(stack)).toList().isEmpty();
+        }
+
+        if (!getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
+            return stack.getFluid().is(ModTags.getFluidTag(getFuelTag()));
+        }
+
+        return false;
+    }
+
+    public Pair<Float, Integer> getGenerationRateForItem(Level level, ItemStack fuelStack) {
+        var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.SOLID_FUEL_MAP);
+        if (fuelData != null) {
+            var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.item().test(fuelStack)).toList();
+            return validFuels.isEmpty() ?
+                    new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING) * getConsumptionRate())) :
+                    new Pair<>((float) validFuels.getFirst().generationRate(), (int) (validFuels.getFirst().burnTime() * validFuels.getFirst().consumptionRate()));
+        }
+
+        Pair<Float, Integer> rate;
+        if (getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
+            rate = GeneratorUtil.calculateEnchantmentGenerationRate(this, fuelStack);
+        } else if (getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
+            rate = GeneratorUtil.calculatePotionGenerationRate(level, this, fuelStack);
+        } else if (getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
+            rate = GeneratorUtil.calculateFoodGenerationRate(this, fuelStack);
+        } else if (getFuelList() != null) {
+            var fuel = getFuelList().get(BuiltInRegistries.ITEM.getKey(fuelStack.getItem()));
+            rate = new Pair<>(fuel.rate() > 0 ? fuel.rate() : (float)getOriginalGenerationRate(), fuel.burnTime());
+        } else {
+            rate = new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING) * getConsumptionRate()));
+        }
+        return rate;
+    }
+
+    public Pair<Double, Double> getGenerationRateForFluid(FluidStack fluidStack) {
+        var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
+        if (fuelData != null) {
+            var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.fluid().test(fluidStack)).toList();
+            return validFuels.isEmpty() ?
+                    Pair.of(getGenerationRate(), getConsumptionRate()) :
+                    Pair.of(validFuels.getFirst().generationRate(), validFuels.getFirst().consumptionRate());
+        }
+
+        return Pair.of(getGenerationRate(), getConsumptionRate());
     }
 }

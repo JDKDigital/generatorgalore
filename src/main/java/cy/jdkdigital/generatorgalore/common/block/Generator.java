@@ -120,6 +120,7 @@ public class Generator extends BaseEntityBlock
     protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
         if (pLevel.getBlockEntity(pPos) instanceof GeneratorBlockEntity generatorBlockEntity) {
             if (!pLevel.isClientSide) {
+                generatorBlockEntity.refreshConnectedTileEntityCache();
                 pPlayer.openMenu(generatorBlockEntity, packetBuffer -> packetBuffer.writeBlockPos(pPos));
             }
             return InteractionResult.SUCCESS_NO_ITEM_USED;

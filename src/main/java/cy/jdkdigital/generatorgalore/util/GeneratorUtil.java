@@ -59,7 +59,7 @@ public class GeneratorUtil
     public static String FUEL_FOOD = "FOOD";
     public static String FUEL_ENCHANTMENT = "ENCHANTMENT";
     public static final Path LOCK_FILE = createCustomPath("");
-    public static final Path GENERATORS = createCustomPath("generators");
+    public static final Path GENERATORS = createCustomPath("generator");
 
     private static Path createCustomPath(String pathName) {
         Path customPath = Paths.get(FMLPaths.CONFIGDIR.get().toAbsolutePath().toString(), GeneratorGalore.MODID, pathName);

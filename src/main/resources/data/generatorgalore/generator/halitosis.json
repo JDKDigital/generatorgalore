@@ -4,11 +4,5 @@
   "consumptionRate": 1,
   "previousTier": "ender",
   "bufferCapacity": 9800000,
-  "fuelType": "SOLID",
-  "fuelList": [
-    {
-      "item": "minecraft:dragon_breath",
-      "burnTime": 12000
-    }
-  ]
+  "fuelType": "SOLID"
 }

@@ -1,15 +1,18 @@
 package cy.jdkdigital.generatorgalore.integrations;
 
+import cy.jdkdigital.generatorgalore.Config;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.recipe.FluidFuelRecipe;
 import cy.jdkdigital.generatorgalore.common.recipe.SolidFuelRecipe;
 import cy.jdkdigital.generatorgalore.init.ModTags;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
+import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.vanilla.IJeiFuelingRecipe;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -75,14 +78,18 @@ public class JeiPlugin implements IModPlugin
         registration.addRecipeCategories(new SolidFuelRecipeCategory(guiHelper));
     }
 
+    static List<IJeiFuelingRecipe> vanillaFuelRecipes;
+    static List<ItemStack> foodList;
+    static List<ItemStack> enchantmentList;
+    static List<ItemStack> potionList;
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        var vanillaFuelRecipes = FuelRecipeMaker.getFuelRecipes(registration.getIngredientManager());
-        var foodList = registration.getIngredientManager().getAllItemStacks().stream().filter((stack) -> {
+        vanillaFuelRecipes = FuelRecipeMaker.getFuelRecipes(registration.getIngredientManager());
+        foodList = registration.getIngredientManager().getAllItemStacks().stream().filter((stack) -> {
             FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
             return foodProperties != null;
         }).toList();
-        var enchantmentList = RegistryUtil.getRegistry(Registries.ENCHANTMENT).holders().map(enchantment -> {
+        enchantmentList = RegistryUtil.getRegistry(Registries.ENCHANTMENT).holders().map(enchantment -> {
             List<ItemStack> books = new ArrayList<>();
             IntStream.range(0, enchantment.value().getMaxLevel()).forEach(
                 i -> books.add(EnchantedBookItem.createForEnchantment(new EnchantmentInstance(enchantment, i + 1)))
@@ -90,7 +97,7 @@ public class JeiPlugin implements IModPlugin
             return books;
         }).flatMap(Collection::stream).toList();
         List<Item> basePotions = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
-        var potionList = BuiltInRegistries.POTION.holders().map(potion -> {
+        potionList = BuiltInRegistries.POTION.holders().map(potion -> {
             List<ItemStack> potions = new ArrayList<>();
             if (potion.value().getEffects().size() > 0) {
                 for (Item input : basePotions) {
@@ -103,59 +110,84 @@ public class JeiPlugin implements IModPlugin
         }).flatMap(Collection::stream).toList();
 
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
-            var genIngredient = Ingredient.of(generator.getBlockSupplier().get());
-            String idPrefix = BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).getPath();
-            AtomicInteger i = new AtomicInteger();
-
-            if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-                var fuelRecipes = new ArrayList<FluidFuelRecipe>();
-                if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
-                    var fluids = BuiltInRegistries.FLUID.getTag(ModTags.getFluidTag(generator.getFuelTag()));
-                    if (fluids.isPresent()) {
-                        List<FluidStack> fluidStacks = fluids.get().stream().map(fluid -> new FluidStack(fluid, 10000)).toList();
-                        fuelRecipes.add(new FluidFuelRecipe(fluidStacks, genIngredient, (float) generator.getGenerationRate(), (float) generator.getConsumptionRate()));
-                    }
-                }
-                registration.addRecipes(FLUID_FUEL_RECIPE_TYPE, fuelRecipes);
-            } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
-                // Standard generator
-                var fuelRecipes = new ArrayList<SolidFuelRecipe>();
-                vanillaFuelRecipes.forEach(fuelingRecipe -> {
-                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(fuelingRecipe.getInputs().get(0))), genIngredient, (float) generator.getGenerationRate(), (int) (fuelingRecipe.getBurnTime() * generator.getConsumptionRate())));
-                });
-                registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
-            } else {
-                var fuelRecipes = new ArrayList<SolidFuelRecipe>();
-                if (generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID)) {
-                    if (generator.getFuelList() != null) {
-                        // Manual fuels item list
-                        generator.getFuelList().forEach((itemId, fuel) -> {
-                            fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(BuiltInRegistries.ITEM.get(itemId))), genIngredient, fuel.rate(), fuel.burnTime()));
-                        });
-                    } else if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
-                        // Item tag
-                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(ModTags.getItemTag(generator.getFuelTag()))), genIngredient, (float) generator.getGenerationRate(), (int) generator.getConsumptionRate()));
-                    }
-                } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
-                    foodList.forEach((stack) -> {
-                        var rate = GeneratorUtil.calculateFoodGenerationRate(generator, stack);
-                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst(), rate.getSecond()));
-                    });
-                } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
-                    enchantmentList.forEach((stack) -> {
-                        var rate = GeneratorUtil.calculateEnchantmentGenerationRate(generator, stack);
-                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst(), rate.getSecond()));
-                    });
-                } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
-                    potionList.forEach((stack) -> {
-                        var rate = GeneratorUtil.calculatePotionGenerationRate(Minecraft.getInstance().level, generator, stack);
-                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst(), rate.getSecond()));
-                    });
-                }
-
-                registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
+            addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 1);
+            if (generator.has8x()) {
+                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_8x")).getDefaultInstance(), 8);
+            }
+            if (generator.has64x()) {
+                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_64x")).getDefaultInstance(), 64);
             }
         });
+    }
+
+    private void addGeneratorFuelRecipes(IRecipeRegistration registration, GeneratorObject generator, ItemStack genIngredient, int modifier) {
+        var solidFuelData = generator.getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.SOLID_FUEL_MAP);
+        var fluidFuelData = generator.getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
+
+        float consumptionModifier = Config.SERVER.increasedConsumption.get() ? modifier : 1;
+
+        if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && fluidFuelData == null) {
+            var fuelRecipes = new ArrayList<FluidFuelRecipe>();
+            if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
+                var fluids = BuiltInRegistries.FLUID.getTag(ModTags.getFluidTag(generator.getFuelTag()));
+                if (fluids.isPresent()) {
+                    List<FluidStack> fluidStacks = fluids.get().stream().map(fluid -> new FluidStack(fluid, 10000)).toList();
+                    fuelRecipes.add(new FluidFuelRecipe(fluidStacks, genIngredient, (float) generator.getGenerationRate() * modifier, (float) generator.getConsumptionRate() * consumptionModifier));
+                }
+            }
+            registration.addRecipes(FLUID_FUEL_RECIPE_TYPE, fuelRecipes);
+        } else if (fluidFuelData != null) {
+            // Datamap fluid fuel generator
+            var fuelRecipes = new ArrayList<FluidFuelRecipe>();
+            fluidFuelData.fuels().forEach(fuel -> {
+                fuelRecipes.add(new FluidFuelRecipe(List.of(fuel.fluid().getStacks()), genIngredient, (float) fuel.generationRate() * modifier, (float) fuel.consumptionRate() * consumptionModifier));
+            });
+            registration.addRecipes(FLUID_FUEL_RECIPE_TYPE, fuelRecipes);
+        } else if (solidFuelData != null) {
+            // Datamap solid fuel generator
+            var fuelRecipes = new ArrayList<SolidFuelRecipe>();
+            solidFuelData.fuels().forEach(fuel -> {
+                fuelRecipes.add(new SolidFuelRecipe(List.of(fuel.item()), genIngredient, (float) fuel.generationRate() * modifier, fuel.burnTime() / consumptionModifier));
+            });
+            registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
+        } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
+            // Standard generator
+            var fuelRecipes = new ArrayList<SolidFuelRecipe>();
+            vanillaFuelRecipes.forEach(fuelingRecipe -> {
+                fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(fuelingRecipe.getInputs().get(0))), genIngredient, (float) generator.getGenerationRate() * modifier, (int) (fuelingRecipe.getBurnTime() * generator.getConsumptionRate() / consumptionModifier)));
+            });
+            registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
+        } else {
+            var fuelRecipes = new ArrayList<SolidFuelRecipe>();
+            if (generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID)) {
+                if (generator.getFuelList() != null) {
+                    // Manual fuels item list
+                    generator.getFuelList().forEach((itemId, fuel) -> {
+                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(BuiltInRegistries.ITEM.get(itemId))), genIngredient, fuel.rate() * modifier, fuel.burnTime() / consumptionModifier));
+                    });
+                } else if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
+                    // Item tag
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(ModTags.getItemTag(generator.getFuelTag()))), genIngredient, (float) generator.getGenerationRate() * modifier, (int) generator.getConsumptionRate() * consumptionModifier));
+                }
+            } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
+                foodList.forEach((stack) -> {
+                    var rate = GeneratorUtil.calculateFoodGenerationRate(generator, stack);
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                });
+            } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
+                enchantmentList.forEach((stack) -> {
+                    var rate = GeneratorUtil.calculateEnchantmentGenerationRate(generator, stack);
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                });
+            } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
+                potionList.forEach((stack) -> {
+                    var rate = GeneratorUtil.calculatePotionGenerationRate(Minecraft.getInstance().level, generator, stack);
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                });
+            }
+
+            registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
+        }
     }
 
     @Override

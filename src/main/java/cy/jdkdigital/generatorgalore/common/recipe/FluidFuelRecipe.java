@@ -7,19 +7,17 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.init.ModRecipeTypes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
-public record FluidFuelRecipe(List<FluidStack> fuels, Ingredient generator, float rate, float consumptionRate) implements Recipe<RecipeInput>
+public record FluidFuelRecipe(List<FluidStack> fuels, ItemStack generator, float rate, float consumptionRate) implements Recipe<RecipeInput>
 {
     @Override
     public boolean matches(RecipeInput pContainer, Level pLevel) {
@@ -56,7 +54,7 @@ public record FluidFuelRecipe(List<FluidStack> fuels, Ingredient generator, floa
         private static final MapCodec<FluidFuelRecipe> CODEC = RecordCodecBuilder.mapCodec(
                 builder -> builder.group(
                     FluidStack.CODEC.listOf().fieldOf("fuels").orElse(List.of()).forGetter(recipe -> recipe.fuels),
-                    Ingredient.CODEC.fieldOf("generator").forGetter(recipe -> recipe.generator),
+                    ItemStack.CODEC.fieldOf("generator").forGetter(recipe -> recipe.generator),
                     Codec.FLOAT.fieldOf("rate").forGetter(recipe -> recipe.rate),
                     Codec.FLOAT.fieldOf("consumptionRate").forGetter(recipe -> recipe.consumptionRate)
                 )
@@ -79,26 +77,21 @@ public record FluidFuelRecipe(List<FluidStack> fuels, Ingredient generator, floa
 
         public static FluidFuelRecipe fromNetwork(@Nonnull RegistryFriendlyByteBuf buffer) {
             try {
-                List<FluidStack> fuels = new ArrayList<>();
-                IntStream.range(0, buffer.readInt()).forEach(
-                    i -> fuels.add(FluidStack.STREAM_CODEC.decode(buffer))
-                );
-                return new FluidFuelRecipe(fuels, Ingredient.CONTENTS_STREAM_CODEC.decode(buffer), buffer.readFloat(), buffer.readFloat());
+                return new FluidFuelRecipe(FluidStack.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer), ItemStack.STREAM_CODEC.decode(buffer), buffer.readFloat(), buffer.readFloat());
             } catch (Exception e) {
-                GeneratorGalore.LOGGER.error("Error reading fluid fuels recipe from packet.", e);
+                GeneratorGalore.LOGGER.error("Error reading item fuels recipe from packet.", e);
                 throw e;
             }
         }
 
         public static void toNetwork(@Nonnull RegistryFriendlyByteBuf buffer, FluidFuelRecipe recipe) {
             try {
-                buffer.writeInt(recipe.fuels().size());
-                recipe.fuels().forEach(fluidStack -> FluidStack.STREAM_CODEC.encode(buffer, fluidStack));
-                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.generator());
+                FluidStack.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, recipe.fuels());
+                ItemStack.STREAM_CODEC.encode(buffer, recipe.generator());
                 buffer.writeFloat(recipe.rate());
                 buffer.writeFloat(recipe.consumptionRate());
             } catch (Exception e) {
-                GeneratorGalore.LOGGER.error("Error writing fluid fuels recipe to packet.", e);
+                GeneratorGalore.LOGGER.error("Error writing item fuels recipe to packet.", e);
                 throw e;
             }
         }

@@ -2,9 +2,11 @@ package cy.jdkdigital.generatorgalore;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
-import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.conditions.GeneratorExistsCondition;
+import cy.jdkdigital.generatorgalore.common.datamap.FluidFuelMap;
+import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
+import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -26,14 +28,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.IBlockCapabilityProvider;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.neoforged.neoforge.registries.datamaps.DataMapType;
+import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 import org.slf4j.Logger;
 
 @Mod(GeneratorGalore.MODID)
@@ -60,6 +62,8 @@ public class GeneratorGalore
                 .build();
     });
     public static final DeferredHolder<MapCodec<? extends ICondition>, MapCodec<GeneratorExistsCondition>> GENERATOR_EXISTS_CONDITION = CONDITION_CODECS.register("generator_exists", () -> GeneratorExistsCondition.CODEC);
+    public static final DataMapType<Block, FluidFuelMap> FLUID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "fluid_fuel_map"), Registries.BLOCK, FluidFuelMap.CODEC).synced(FluidFuelMap.CODEC, false).build();
+    public static final DataMapType<Block, SolidFuelMap> SOLID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "solid_fuel_map"), Registries.BLOCK, SolidFuelMap.CODEC).synced(SolidFuelMap.CODEC, false).build();
 
     public GeneratorGalore(IEventBus modEventBus, ModContainer modContainer) {
         GeneratorRegistry.discoverGenerators();
@@ -76,10 +80,6 @@ public class GeneratorGalore
 
         modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
         modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
-
-        /**
-         * Jade/TOP integration to show how much burn time is left
-         */
     }
 
     @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = MODID)
@@ -95,12 +95,18 @@ public class GeneratorGalore
         }
 
         @SubscribeEvent
+        private static void registerDataMap(final RegisterDataMapTypesEvent event) {
+            event.register(FLUID_FUEL_MAP);
+            event.register(SOLID_FUEL_MAP);
+        }
+
+        @SubscribeEvent
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
             GeneratorRegistry.generators.values().forEach(generatorObject -> {
                 event.registerBlockEntity(
                         Capabilities.ItemHandler.BLOCK,
                         generatorObject.getBlockEntityType().get(),
-                        (myBlockEntity, side) -> myBlockEntity.inventoryHandler
+                        (myBlockEntity, side) -> myBlockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? null : myBlockEntity.inventoryHandler
                 );
                 event.registerBlockEntity(
                         Capabilities.EnergyStorage.BLOCK,
@@ -110,7 +116,7 @@ public class GeneratorGalore
                 event.registerBlockEntity(
                         Capabilities.FluidHandler.BLOCK,
                         generatorObject.getBlockEntityType().get(),
-                        (myBlockEntity, side) -> myBlockEntity.fluidInventory
+                        (myBlockEntity, side) -> myBlockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? myBlockEntity.fluidInventory : null
                 );
             });
         }

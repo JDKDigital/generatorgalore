@@ -38,10 +38,10 @@ public class GeneratorRegistry
     private static void discoverGeneratorFiles() throws IOException {
         File lockFile = new File(GeneratorUtil.LOCK_FILE.toString(), "defaults.lock");
         if (!lockFile.exists()) {
-            FileUtils.write(lockFile, "This lock file means the standard generators have already been added and you can now do your own custom stuff to them.", StandardCharsets.UTF_8);
-            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generators", Paths.get(GeneratorUtil.GENERATORS.toString()), true);
+            FileUtils.write(lockFile, "This lock file means the standard generator have already been added and you can now do your own custom stuff to them.", StandardCharsets.UTF_8);
+            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generator", Paths.get(GeneratorUtil.GENERATORS.toString()), true);
         } else {
-            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generators", Paths.get(GeneratorUtil.GENERATORS.toString()), false);
+            setupDefaultFiles("/data/" + GeneratorGalore.MODID + "/generator", Paths.get(GeneratorUtil.GENERATORS.toString()), false);
         }
 
         var files = GeneratorUtil.GENERATORS.toFile().listFiles((FileFilter) FileFilterUtils.suffixFileFilter(".json"));
@@ -101,6 +101,7 @@ public class GeneratorRegistry
     }
 
     public static void setupDefaultFiles(String dataPath, Path targetPath, Path modPath, boolean override) {
+        GeneratorGalore.LOGGER.debug("Loading generator files from " + dataPath + " to " + targetPath);
         if (Files.isRegularFile(modPath)) {
             try(FileSystem fileSystem = FileSystems.newFileSystem(modPath)) {
                 Path path = fileSystem.getPath(dataPath);
@@ -109,7 +110,7 @@ public class GeneratorRegistry
                 }
             } catch (IOException e) {
                 GeneratorGalore.LOGGER.error("Could not load source {}!!", modPath);
-                e.printStackTrace();
+                GeneratorGalore.LOGGER.error(e.getLocalizedMessage());
             }
         } else if (Files.isDirectory(modPath)) {
             copyFiles(Paths.get(modPath.toString(), dataPath), targetPath, override);
@@ -134,6 +135,7 @@ public class GeneratorRegistry
                     });
         } catch (IOException e) {
             GeneratorGalore.LOGGER.error("Could not stream source files: {}", source);
+            GeneratorGalore.LOGGER.error(e.getLocalizedMessage());
         }
     }
 }

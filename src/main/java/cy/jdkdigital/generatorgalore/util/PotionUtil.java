@@ -1,5 +1,6 @@
 package cy.jdkdigital.generatorgalore.util;
 
+import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.util.collection.SetMultiMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,8 +27,9 @@ public class PotionUtil
     private static final SetMultiMap<String, String> potionMap = new SetMultiMap<>();
 
     public static SetMultiMap<String, String> getPotionMap(Level level) {
-        if (potionMap.allValues().isEmpty()) {
-            List<IBrewingRecipe> brewingRecipes = level instanceof ServerLevel serverLevel ? serverLevel.potionBrewing().getRecipes() : PotionBrewing.EMPTY.getRecipes();
+        if (potionMap.allValues().isEmpty() && level instanceof ServerLevel serverLevel) {
+
+            List<IBrewingRecipe> brewingRecipes = serverLevel.potionBrewing().getRecipes();
             brewingRecipes.stream()
                     .filter(Objects::nonNull)
                     .map(IBrewingRecipe.class::cast)
@@ -111,7 +113,10 @@ public class PotionUtil
     public static String getUniquePotionName(ItemStack stack) {
         StringBuilder potionUid = new StringBuilder(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
         if (stack.has(DataComponents.POTION_CONTENTS)) {
-            potionUid.append(stack.get(DataComponents.POTION_CONTENTS));
+            var potionData = stack.get(DataComponents.POTION_CONTENTS);
+            if (potionData != null) {
+                potionData.getAllEffects().forEach(mobEffectInstance -> potionUid.append(mobEffectInstance.getDescriptionId()));
+            }
         }
         return potionUid.toString();
     }

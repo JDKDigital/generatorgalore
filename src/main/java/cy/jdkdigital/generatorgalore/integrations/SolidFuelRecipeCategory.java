@@ -27,10 +27,8 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
 {
     private final IDrawable background;
     private final IDrawable icon;
-//    private final GeneratorObject generator;
 
     public SolidFuelRecipeCategory(IGuiHelper guiHelper) {
-//        this.generator = generator;
         ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/solid_fuel_recipe.png");
         this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "iron_generator"))));
@@ -38,9 +36,6 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
 
     @Override
     public @NotNull RecipeType<SolidFuelRecipe> getRecipeType() {
-//        if (!JeiPlugin.FUEL_RECIPE_TYPES.containsKey(generator.getId()) || generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
-//            return JeiPlugin.FUEL_RECIPE_TYPES.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "generic"));
-//        }
         return JeiPlugin.SOLID_FUEL_RECIPE_TYPE;
     }
 
@@ -62,7 +57,7 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SolidFuelRecipe recipe, @NotNull IFocusGroup iFocusGroup) {
         builder.addSlot(RecipeIngredientRole.INPUT, 0, 41)
-                .addItemStacks(Arrays.asList(recipe.generator().getItems()))
+                .addItemStack(recipe.generator())
                 .setSlotName("generator");
         builder.addSlot(RecipeIngredientRole.INPUT, 18, 41)
                 .addItemStacks(recipe.fuels().stream().flatMap(ingredient -> Arrays.stream(ingredient.getItems())).toList())
