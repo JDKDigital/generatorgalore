@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.integrations;
 
 import cy.jdkdigital.generatorgalore.Config;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
+import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
 import cy.jdkdigital.generatorgalore.common.recipe.FluidFuelRecipe;
 import cy.jdkdigital.generatorgalore.common.recipe.SolidFuelRecipe;
 import cy.jdkdigital.generatorgalore.init.ModTags;
@@ -81,7 +82,7 @@ public class JeiPlugin implements IModPlugin
     static List<IJeiFuelingRecipe> vanillaFuelRecipes;
     static List<ItemStack> foodList;
     static List<ItemStack> enchantmentList;
-    static List<ItemStack> potionList;
+    static List<SolidFuelMap.SolidFuel> potionList;
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         vanillaFuelRecipes = FuelRecipeMaker.getFuelRecipes(registration.getIngredientManager());
@@ -97,17 +98,7 @@ public class JeiPlugin implements IModPlugin
             return books;
         }).flatMap(Collection::stream).toList();
         List<Item> basePotions = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
-        potionList = BuiltInRegistries.POTION.holders().map(potion -> {
-            List<ItemStack> potions = new ArrayList<>();
-            if (potion.value().getEffects().size() > 0) {
-                for (Item input : basePotions) {
-                    ItemStack result = new ItemStack(input);
-                    result.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
-                    potions.add(result);
-                }
-            }
-            return potions;
-        }).flatMap(Collection::stream).toList();
+        potionList = GeneratorUtil.getPotionFuels(Minecraft.getInstance().level.registryAccess());
 
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
             addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 1);
@@ -180,9 +171,8 @@ public class JeiPlugin implements IModPlugin
                     fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
                 });
             } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
-                potionList.forEach((stack) -> {
-                    var rate = GeneratorUtil.calculatePotionGenerationRate(Minecraft.getInstance().level, generator, stack);
-                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                potionList.forEach((fuel) -> {
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(fuel.item()), genIngredient, fuel.generationRate() * modifier, fuel.consumptionRate() / consumptionModifier));
                 });
             }
 

@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import cy.jdkdigital.generatorgalore.common.conditions.GeneratorExistsCondition;
 import cy.jdkdigital.generatorgalore.common.datamap.FluidFuelMap;
+import cy.jdkdigital.generatorgalore.common.datamap.PotionComponentIngredient;
 import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
@@ -30,6 +31,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -53,6 +55,7 @@ public class GeneratorGalore
     public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, GeneratorGalore.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, GeneratorGalore.MODID);
     public static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS = DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, MODID);
+    public static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, MODID);
 
     public static DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> {
         return CreativeModeTab.builder()
@@ -64,6 +67,8 @@ public class GeneratorGalore
     public static final DeferredHolder<MapCodec<? extends ICondition>, MapCodec<GeneratorExistsCondition>> GENERATOR_EXISTS_CONDITION = CONDITION_CODECS.register("generator_exists", () -> GeneratorExistsCondition.CODEC);
     public static final DataMapType<Block, FluidFuelMap> FLUID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "fluid_fuel_map"), Registries.BLOCK, FluidFuelMap.CODEC).synced(FluidFuelMap.CODEC, false).build();
     public static final DataMapType<Block, SolidFuelMap> SOLID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "solid_fuel_map"), Registries.BLOCK, SolidFuelMap.CODEC).synced(SolidFuelMap.CODEC, false).build();
+
+    public static final DeferredHolder<IngredientType<?>, IngredientType<PotionComponentIngredient>> POTIOM_INGREDIENT_TYPE = INGREDIENT_TYPES.register("component", () -> new IngredientType<>(PotionComponentIngredient.CODEC));
 
     public GeneratorGalore(IEventBus modEventBus, ModContainer modContainer) {
         GeneratorRegistry.discoverGenerators();
@@ -77,6 +82,7 @@ public class GeneratorGalore
         PARTICLE_TYPES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
         CONDITION_CODECS.register(modEventBus);
+        INGREDIENT_TYPES.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
         modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);

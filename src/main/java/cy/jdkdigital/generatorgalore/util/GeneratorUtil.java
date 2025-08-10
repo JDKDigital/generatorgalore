@@ -4,14 +4,25 @@ import com.mojang.datafixers.util.Pair;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
+import cy.jdkdigital.generatorgalore.common.datamap.PotionComponentIngredient;
+import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -26,9 +37,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class GeneratorUtil
 {
@@ -129,31 +138,49 @@ public class GeneratorUtil
     }
 
     public static Pair<Float, Integer> calculatePotionGenerationRate(Level level, GeneratorObject generator, ItemStack stack) {
-        int steps = getBrewingSteps(level, PotionUtil.getUniquePotionName(stack), new HashSet<>());
-        double totalRF = 100 * Math.pow(4, steps);
-        return Pair.of((float) generator.getGenerationRate(), (int) (totalRF / generator.getGenerationRate()));
+        List<SolidFuelMap.SolidFuel> fuels = GeneratorUtil.getPotionFuels(level.registryAccess());
+        for (SolidFuelMap.SolidFuel fuel : fuels) {
+            if (fuel.item().test(stack)) {
+                return Pair.of((float) fuel.generationRate(), (int) fuel.consumptionRate());
+            }
+        }
+        return Pair.of(0f, 1);
     }
 
-    private static int getBrewingSteps(Level level, String potionOutputUid, Set<String> previousSteps) {
-        var potionMap = PotionUtil.getPotionMap(level);
+    public static List<SolidFuelMap.SolidFuel> getPotionFuels(HolderLookup.Provider provider) {
+        List<SolidFuelMap.SolidFuel> potionFuels = new ArrayList<>();
+        provider.lookup(Registries.POTION).ifPresent(
+            potionRegistryLookup -> {
+                generatePotionEffectTypes(
+                        potionFuels,
+                        potionRegistryLookup,
+                        Items.POTION
+                );
+                generatePotionEffectTypes(
+                        potionFuels,
+                        potionRegistryLookup,
+                        Items.SPLASH_POTION
+                );
+                generatePotionEffectTypes(
+                        potionFuels,
+                        potionRegistryLookup,
+                        Items.LINGERING_POTION
+                );
+            }
+        );
+        return potionFuels;
+    }
 
-        Integer cachedBrewingSteps = PotionUtil.brewingStepCache.get(potionOutputUid);
-        if (cachedBrewingSteps != null) {
-            return cachedBrewingSteps;
-        }
-
-        if (!previousSteps.add(potionOutputUid)) {
-            return Integer.MAX_VALUE;
-        }
-
-        Collection<String> prevPotions = potionMap.get(potionOutputUid);
-        int minPrevSteps = prevPotions.stream()
-                .mapToInt(prevPotion -> getBrewingSteps(level, prevPotion, previousSteps))
-                .min()
-                .orElse(Integer.MAX_VALUE);
-
-        int brewingSteps = minPrevSteps == Integer.MAX_VALUE ? Integer.MAX_VALUE : minPrevSteps + 1;
-        PotionUtil.brewingStepCache.put(potionOutputUid, brewingSteps);
-        return brewingSteps;
+    private static void generatePotionEffectTypes(List<SolidFuelMap.SolidFuel> potionFuels, HolderLookup<Potion> potions, Item item) {
+        potions.listElements()
+                .map(potion -> {
+                    var stack = PotionContents.createItemStack(item, potion);
+                    int burnTime = 0;
+                    for (MobEffectInstance mobEffectInstance : stack.get(DataComponents.POTION_CONTENTS).getAllEffects()) {
+                        burnTime += 3 * (1 + mobEffectInstance.getAmplifier()) * (mobEffectInstance.getDuration() * 3) + (potion.getKey().location().getPath().contains("strong_") ? 6000 : 0);
+                    }
+                    return new SolidFuelMap.SolidFuel(PotionComponentIngredient.of(stack), 1.0f, burnTime, 8);
+                })
+                .forEach(potionFuels::add);
     }
 }

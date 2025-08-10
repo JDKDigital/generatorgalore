@@ -3,6 +3,7 @@ package cy.jdkdigital.generatorgalore.data;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.conditions.GeneratorExistsCondition;
 import cy.jdkdigital.generatorgalore.common.datamap.FluidFuelMap;
+import cy.jdkdigital.generatorgalore.common.datamap.PotionComponentIngredient;
 import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import net.minecraft.core.HolderLookup;
@@ -55,41 +56,28 @@ public class DataMapProvider extends net.neoforged.neoforge.common.data.DataMapP
                         new SolidFuelMap.SolidFuel(Ingredient.of(Items.DRAGON_BREATH), 1.0f, 12000, 128)
                 )), false, new GeneratorExistsCondition(halitosisGen));
 
-        List<SolidFuelMap.SolidFuel> potionFuels = new ArrayList<>();
-        provider.lookup(Registries.POTION).ifPresent(
-            potionRegistryLookup -> {
-                generatePotionEffectTypes(
-                        potionFuels,
-                        potionRegistryLookup,
-                        Items.POTION
-                );
-                generatePotionEffectTypes(
-                        potionFuels,
-                        potionRegistryLookup,
-                        Items.SPLASH_POTION
-                );
-                generatePotionEffectTypes(
-                        potionFuels,
-                        potionRegistryLookup,
-                        Items.LINGERING_POTION
-                );
-            }
-        );
-        var potionGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "potion");
-        solidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(potionGen).getBlockSupplier().get().builtInRegistryHolder().value()),
-                new SolidFuelMap(potionFuels), false, new GeneratorExistsCondition(potionGen));
-    }
-
-    private static void generatePotionEffectTypes(List<SolidFuelMap.SolidFuel> potionFuels, HolderLookup<Potion> potions, Item item) {
-        potions.listElements()
-                .map(potion -> {
-                    var stack = PotionContents.createItemStack(item, potion);
-                    int burnTime = 0;
-                    for (MobEffectInstance mobEffectInstance : stack.get(DataComponents.POTION_CONTENTS).getAllEffects()) {
-                        burnTime += 3 * (1 + mobEffectInstance.getAmplifier()) * (mobEffectInstance.getDuration() * 3) + (potion.getKey().location().getPath().contains("strong_") ? 6000 : 0);
-                    }
-                    return new SolidFuelMap.SolidFuel(DataComponentIngredient.of(false, stack), 1.0f, burnTime, 8);
-                })
-                .forEach(potionFuels::add);
+//        List<SolidFuelMap.SolidFuel> potionFuels = new ArrayList<>();
+//        provider.lookup(Registries.POTION).ifPresent(
+//            potionRegistryLookup -> {
+//                generatePotionEffectTypes(
+//                        potionFuels,
+//                        potionRegistryLookup,
+//                        Items.POTION
+//                );
+//                generatePotionEffectTypes(
+//                        potionFuels,
+//                        potionRegistryLookup,
+//                        Items.SPLASH_POTION
+//                );
+//                generatePotionEffectTypes(
+//                        potionFuels,
+//                        potionRegistryLookup,
+//                        Items.LINGERING_POTION
+//                );
+//            }
+//        );
+//        var potionGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "potion");
+//        solidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(potionGen).getBlockSupplier().get().builtInRegistryHolder().value()),
+//                new SolidFuelMap(potionFuels), false, new GeneratorExistsCondition(potionGen));
     }
 }

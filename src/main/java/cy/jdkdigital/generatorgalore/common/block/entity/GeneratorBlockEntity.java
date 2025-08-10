@@ -79,7 +79,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         this.fluidInventory = new FluidTank(10000) {
             @Override
             public boolean isFluidValid(FluidStack stack) {
-                return generator.isValidFuelFluid(stack) || super.isFluidValid(stack);
+                return generator.isValidFuelFluid(stack);
             }
 
             @Override
@@ -144,12 +144,14 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
             } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && blockEntity.energyHandler.getEnergyStored() + inputPowerAmount <= blockEntity.energyHandler.getMaxEnergyStored()) {
                 var fluidStack = blockEntity.fluidInventory.getFluidInTank(0);
                 Pair<Double, Double> rate = blockEntity.generator.getGenerationRateForFluid(fluidStack);
-                double fluidConsumeAmount = rate.getSecond() * tickRate * blockEntity.modifier;
-                if (blockEntity.fluidInventory.getFluidInTank(0).getAmount() >= fluidConsumeAmount) {
-                    blockEntity.fluidInventory.drain((int) fluidConsumeAmount, IFluidHandler.FluidAction.EXECUTE);
-                    blockEntity.generator.setGenerationRate(rate.getFirst());
-                    blockEntity.generator.setConsumptionRate(rate.getSecond());
-                    hasConsumedFuel.set(true);
+                if (rate != null) {
+                    double fluidConsumeAmount = rate.getSecond() * tickRate * blockEntity.modifier;
+                    if (blockEntity.fluidInventory.getFluidInTank(0).getAmount() >= fluidConsumeAmount) {
+                        blockEntity.fluidInventory.drain((int) fluidConsumeAmount, IFluidHandler.FluidAction.EXECUTE);
+                        blockEntity.generator.setGenerationRate(rate.getFirst());
+                        blockEntity.generator.setConsumptionRate(rate.getSecond());
+                        hasConsumedFuel.set(true);
+                    }
                 }
             }
 

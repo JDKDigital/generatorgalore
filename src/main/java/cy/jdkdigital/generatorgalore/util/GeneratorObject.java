@@ -232,14 +232,16 @@ public class GeneratorObject
     }
 
     public Pair<Double, Double> getGenerationRateForFluid(FluidStack fluidStack) {
-        var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
-        if (fuelData != null) {
-            var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.fluid().test(fluidStack)).toList();
-            return validFuels.isEmpty() ?
-                    Pair.of(getGenerationRate(), getConsumptionRate()) :
-                    Pair.of(validFuels.getFirst().generationRate(), validFuels.getFirst().consumptionRate());
+        if (isValidFuelFluid(fluidStack)) {
+            var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
+            if (fuelData != null) {
+                var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.fluid().test(fluidStack)).toList();
+                return validFuels.isEmpty() ?
+                        Pair.of(getGenerationRate(), getConsumptionRate()) :
+                        Pair.of(validFuels.getFirst().generationRate(), validFuels.getFirst().consumptionRate());
+            }
+            return Pair.of(getGenerationRate(), getConsumptionRate());
         }
-
-        return Pair.of(getGenerationRate(), getConsumptionRate());
+        return null;
     }
 }

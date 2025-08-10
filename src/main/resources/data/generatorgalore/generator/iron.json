@@ -1,7 +1,6 @@
 {
   "generationRate": 16,
   "transferRate": 64,
-  "hasChargeSlot": false,
   "consumptionRate": 1,
   "previousTier": "copper",
   "bufferCapacity": 10000,
