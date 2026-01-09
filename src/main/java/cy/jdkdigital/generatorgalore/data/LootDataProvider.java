@@ -1,6 +1,7 @@
 package cy.jdkdigital.generatorgalore.data;
 
 import com.google.common.collect.Maps;
+import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -12,10 +13,12 @@ import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +46,7 @@ public class LootDataProvider implements DataProvider
 
     @Override
     public CompletableFuture<?> run(CachedOutput pOutput) {
-        return this.registries.thenCompose(provider -> this.run(pOutput, provider));
+        return this.registries.thenComposeAsync(provider -> this.run(pOutput, provider));
     }
 
     private CompletableFuture<?> run(CachedOutput pOutput, HolderLookup.Provider pProvider) {
@@ -103,7 +106,11 @@ public class LootDataProvider implements DataProvider
         }
 
         protected static LootTable.Builder genOptionalBlockDrop(Block block) {
-            LootPoolEntryContainer.Builder<?> builder = LootItem.lootTableItem(block).when(ExplosionCondition.survivesExplosion());
+            LootPoolEntryContainer.Builder<?> builder = LootItem.lootTableItem(block)
+                    .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                            .include(GeneratorGalore.ENERGY_COMPONENT.get())
+                            .include(GeneratorGalore.FLUID_COMPONENT.get()))
+                    .when(ExplosionCondition.survivesExplosion());
 
             return LootTable.lootTable().withPool(
                     LootPool.lootPool().setRolls(ConstantValue.exactly(1))

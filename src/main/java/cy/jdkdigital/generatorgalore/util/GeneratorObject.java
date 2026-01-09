@@ -7,6 +7,7 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import cy.jdkdigital.generatorgalore.init.ModTags;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
@@ -32,11 +33,11 @@ public class GeneratorObject
     private Supplier<Item> upgradeSupplier;
     private Supplier<MenuType<GeneratorMenu>> menuType;
     private final GeneratorUtil.FuelType fuelType;
-    private final double generationRate;
-    private double modifiedGenerationRate =  0;
-    private final double transferRate;
-    private double modifiedConsumptionRate;
-    private final double consumptionRate;
+    private final int generationRate;
+    private int modifiedGenerationRate =  0;
+    private final int transferRate;
+    private int modifiedConsumptionRate;
+    private final int consumptionRate;
     private final int bufferCapacity;
     private final boolean hasChargeSlot;
     private final ResourceLocation fuelTag;
@@ -44,7 +45,7 @@ public class GeneratorObject
     private final boolean has64x;
     private Map<ResourceLocation, GeneratorCreator.Fuel> fuelList;
 
-    public GeneratorObject(ResourceLocation id, GeneratorUtil.FuelType fuelType, double generationRate, double transferRate, double consumptionRate, int bufferCapacity, boolean hasChargeSlot, ResourceLocation fuelTag, boolean has8x, boolean has64x) {
+    public GeneratorObject(ResourceLocation id, GeneratorUtil.FuelType fuelType, int generationRate, int transferRate, int consumptionRate, int bufferCapacity, boolean hasChargeSlot, ResourceLocation fuelTag, boolean has8x, boolean has64x) {
         this.id = id;
         this.fuelType = fuelType;
         this.generationRate = generationRate;
@@ -97,31 +98,31 @@ public class GeneratorObject
         return this.fuelType;
     }
 
-    public double getGenerationRate() {
+    public int getGenerationRate() {
         return modifiedGenerationRate > 0 ? modifiedGenerationRate : generationRate;
     }
 
-    public double getConsumptionRate() {
+    public int getConsumptionRate() {
         return modifiedConsumptionRate > 0 ? modifiedConsumptionRate : consumptionRate;
     }
 
-    public void setGenerationRate(double generationRate) {
+    public void setGenerationRate(int generationRate) {
         this.modifiedGenerationRate = generationRate;
     }
 
-    public void setConsumptionRate(double consumptionRate) {
+    public void setConsumptionRate(int consumptionRate) {
         this.modifiedConsumptionRate = consumptionRate;
     }
 
-    public double getOriginalGenerationRate() {
+    public int getOriginalGenerationRate() {
         return generationRate;
     }
 
-    public double getOriginalConsumptionRate() {
+    public int getOriginalConsumptionRate() {
         return consumptionRate;
     }
 
-    public double getTransferRate() {
+    public int getTransferRate() {
         return transferRate;
     }
 
@@ -141,9 +142,9 @@ public class GeneratorObject
         return RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("id").orElse(id).forGetter(GeneratorObject::getId),
             GeneratorUtil.FuelType.CODEC.fieldOf("fuelType").orElse(GeneratorUtil.FuelType.SOLID).forGetter(GeneratorObject::getFuelType),
-            Codec.DOUBLE.fieldOf("generationRate").forGetter(GeneratorObject::getOriginalGenerationRate),
-            Codec.DOUBLE.fieldOf("transferRate").forGetter(GeneratorObject::getTransferRate),
-            Codec.DOUBLE.fieldOf("consumptionRate").forGetter(GeneratorObject::getConsumptionRate),
+            Codec.INT.fieldOf("generationRate").forGetter(GeneratorObject::getOriginalGenerationRate),
+            Codec.INT.fieldOf("transferRate").forGetter(GeneratorObject::getTransferRate),
+            Codec.INT.fieldOf("consumptionRate").forGetter(GeneratorObject::getConsumptionRate),
             Codec.INT.fieldOf("bufferCapacity").forGetter(GeneratorObject::getBufferCapacity),
             Codec.BOOL.fieldOf("hasChargeSlot").orElse(true).forGetter(GeneratorObject::hasChargeSlot),
             ResourceLocation.CODEC.fieldOf("fuelTag").orElse(GeneratorUtil.EMPTY_TAG).forGetter(GeneratorObject::getFuelTag),
@@ -178,7 +179,7 @@ public class GeneratorObject
             return stack.is(ModTags.getItemTag(getFuelTag()));
         }
         if (getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
-            return stack.getItem().getFoodProperties(stack, null) != null;
+            return stack.get(DataComponents.FOOD) != null;
         }
         if (getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
             return !EnchantmentHelper.getEnchantmentsForCrafting(stack).isEmpty();
@@ -190,6 +191,7 @@ public class GeneratorObject
             return getFuelList().containsKey(BuiltInRegistries.ITEM.getKey(stack.getItem()));
         }
 
+        // Modern approach: Check for burn time using Data Components or fallback to legacy method
         return stack.getBurnTime(RecipeType.SMELTING) > 0;
     }
 
@@ -231,14 +233,14 @@ public class GeneratorObject
         return rate;
     }
 
-    public Pair<Double, Double> getGenerationRateForFluid(FluidStack fluidStack) {
+    public Pair<Integer, Integer> getGenerationRateForFluid(FluidStack fluidStack) {
         if (isValidFuelFluid(fluidStack)) {
             var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.FLUID_FUEL_MAP);
             if (fuelData != null) {
                 var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.fluid().test(fluidStack)).toList();
                 return validFuels.isEmpty() ?
                         Pair.of(getGenerationRate(), getConsumptionRate()) :
-                        Pair.of(validFuels.getFirst().generationRate(), validFuels.getFirst().consumptionRate());
+                        Pair.of((int)validFuels.getFirst().generationRate(), (int)validFuels.getFirst().consumptionRate());
             }
             return Pair.of(getGenerationRate(), getConsumptionRate());
         }

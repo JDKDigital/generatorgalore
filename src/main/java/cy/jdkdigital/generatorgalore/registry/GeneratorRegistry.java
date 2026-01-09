@@ -3,7 +3,6 @@ package cy.jdkdigital.generatorgalore.registry;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import cy.jdkdigital.generatorgalore.init.ModBlockEntityTypes;
 import cy.jdkdigital.generatorgalore.util.GeneratorCreator;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
@@ -25,13 +24,13 @@ import java.util.stream.Stream;
 
 public class GeneratorRegistry
 {
-    public static Map<ResourceLocation, GeneratorObject> generators = new LinkedHashMap<>();
+    public static final Map<ResourceLocation, GeneratorObject> generators = new LinkedHashMap<>();
 
     public static void discoverGenerators() {
         try {
             discoverGeneratorFiles();
         } catch (IOException e) {
-            e.printStackTrace();
+            GeneratorGalore.LOGGER.error("Failed to discover generators", e);
         }
     }
 
@@ -81,8 +80,6 @@ public class GeneratorRegistry
                 GeneratorGalore.LOGGER.error("failed to load generator " + id);
             }
         }
-
-//        ModBlockEntityTypes.registerGeneratorBlockEntities();
     }
 
     public static void setupDefaultFiles(String dataPath, Path targetPath, boolean override) {

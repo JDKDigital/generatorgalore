@@ -8,6 +8,7 @@ import cy.jdkdigital.generatorgalore.common.datamap.PotionComponentIngredient;
 import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
+import cy.jdkdigital.generatorgalore.network.ModPackets;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -33,42 +34,51 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.core.component.DataComponents;
+import com.mojang.serialization.Codec;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.fluids.FluidStack;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 
 @Mod(GeneratorGalore.MODID)
-public class GeneratorGalore
-{
+public class GeneratorGalore {
     public static final String MODID = "generatorgalore";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, GeneratorGalore.MODID);
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, GeneratorGalore.MODID);
-    public static final DeferredRegister<MenuType<?>> CONTAINER_TYPES = DeferredRegister.create(Registries.MENU, GeneratorGalore.MODID);
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, GeneratorGalore.MODID);
-    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, GeneratorGalore.MODID);
-    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, GeneratorGalore.MODID);
-    public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, GeneratorGalore.MODID);
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, GeneratorGalore.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, MODID);
+    public static final DeferredRegister<MenuType<?>> CONTAINER_TYPES = DeferredRegister.create(Registries.MENU, MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, MODID);
+    public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(Registries.PARTICLE_TYPE, MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS = DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, MODID);
     public static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, MODID);
 
-    public static DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> {
-        return CreativeModeTab.builder()
-                .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
-                .icon(() -> new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(MODID, "iron_generator"))))
-                .title(Component.literal("Generator Galore"))
-                .build();
-    });
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> CreativeModeTab.builder()
+            .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
+            .icon(() -> new ItemStack(GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(MODID, "iron")).getBlockSupplier().get()))
+            .title(Component.literal("Generator Galore"))
+            .build());
+
     public static final DeferredHolder<MapCodec<? extends ICondition>, MapCodec<GeneratorExistsCondition>> GENERATOR_EXISTS_CONDITION = CONDITION_CODECS.register("generator_exists", () -> GeneratorExistsCondition.CODEC);
     public static final DataMapType<Block, FluidFuelMap> FLUID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "fluid_fuel_map"), Registries.BLOCK, FluidFuelMap.CODEC).synced(FluidFuelMap.CODEC, false).build();
     public static final DataMapType<Block, SolidFuelMap> SOLID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "solid_fuel_map"), Registries.BLOCK, SolidFuelMap.CODEC).synced(SolidFuelMap.CODEC, false).build();
-
     public static final DeferredHolder<IngredientType<?>, IngredientType<PotionComponentIngredient>> POTIOM_INGREDIENT_TYPE = INGREDIENT_TYPES.register("component", () -> new IngredientType<>(PotionComponentIngredient.CODEC));
+
+    public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
+    public static final Supplier<DataComponentType<Integer>> ENERGY_COMPONENT = DATA_COMPONENTS.register("energy_storage", () -> DataComponentType.<Integer>builder().persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT).build());
+    public static final Supplier<DataComponentType<FluidStack>> FLUID_COMPONENT = DATA_COMPONENTS.register("fluid_storage", () -> DataComponentType.<FluidStack>builder().persistent(FluidStack.CODEC).networkSynchronized(FluidStack.STREAM_CODEC).build());
 
     public GeneratorGalore(IEventBus modEventBus, ModContainer modContainer) {
         GeneratorRegistry.discoverGenerators();
@@ -83,20 +93,26 @@ public class GeneratorGalore
         CREATIVE_MODE_TABS.register(modEventBus);
         CONDITION_CODECS.register(modEventBus);
         INGREDIENT_TYPES.register(modEventBus);
+        DATA_COMPONENTS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, Config.SERVER_CONFIG);
         modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
     }
 
     @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = MODID)
-    public static class EventHandler
-    {
+    public static class EventHandler {
+
+        @SubscribeEvent
+        public static void registerPayloadHandlers(RegisterPayloadHandlersEvent event) {
+            ModPackets.registerPackets(event);
+        }
+
         @SubscribeEvent
         public static void buildContents(BuildCreativeModeTabContentsEvent event) {
-            if (event.getTab().equals(TAB.get())) {
-                for (DeferredHolder<Item, ? extends Item> item: GeneratorGalore.ITEMS.getEntries()) {
-                    event.accept(item.get());
-                }
+            if (event.getTabKey() == TAB.getKey()) {
+                GeneratorRegistry.generators.values().forEach(generatorObject -> {
+                    event.accept(generatorObject.getBlockSupplier().get());
+                });
             }
         }
 

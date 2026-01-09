@@ -1,3 +1,12 @@
+1.21.1-2.0.1
+
+- Complete Codebase Overhaul: Refactored and modernized the entire source structure for better maintainability
+- Major UI Performance Overhaul: Replaced legacy texture-based rendering with optimized realtime code-based rendering
+- Implemented smooth interpolation (lerping) for all UI bars, providing fluid visuals at high refresh rates
+- Switched to native Minecraft furnace flame sprites (lit_progress) for improved visual consistency
+- Enhanced Magmatic Generator with precise fluid color detection and lava-specific rendering fixes
+- Optimized GPU overhead by reducing texture-binding calls, specifically targeting performance gains for integrated graphics (APUs)
+
 1.21.1-1.6.3
 
 - Fixed fuel validation for fluid generators

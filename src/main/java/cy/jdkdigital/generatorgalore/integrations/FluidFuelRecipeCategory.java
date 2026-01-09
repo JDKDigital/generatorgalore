@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.integrations;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.recipe.FluidFuelRecipe;
+import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -28,7 +29,7 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
     public FluidFuelRecipeCategory(IGuiHelper guiHelper) {
         ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/fluid_fuel_recipe.png");
         this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic_generator"))));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic")).getBlockSupplier().get()));
     }
 
     @Override

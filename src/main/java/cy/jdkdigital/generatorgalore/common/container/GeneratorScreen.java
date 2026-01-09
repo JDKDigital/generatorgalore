@@ -23,6 +23,16 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
     private static final ResourceLocation GUI_SOLID_CHARGING = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/container/generator_solid_charging.png");
     private static final ResourceLocation GUI_FLUID_CHARGING = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/container/generator_fluid_charging.png");
 
+    // Smooth energy bar interpolation variables
+    private int lastEnergy = 0;
+    private int clientEnergy = 0;
+    private boolean firstEnergyRender = true;
+
+    // Smooth fluid level interpolation variables
+    private int lastFluidAmount = 0;
+    private int clientFluidAmount = 0;
+    private boolean firstFluidRender = true;
+
     public GeneratorScreen(GeneratorMenu screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
     }
@@ -44,9 +54,10 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
         List<FormattedCharSequence> tooltipList = new ArrayList<>();
         int energyAmount = this.menu.blockEntity.energyHandler.getEnergyStored();
 
-        // Energy level tooltip
+        // Energy level tooltip - use current energy for tooltip
+        int currentEnergy = this.menu.blockEntity.energyHandler.getEnergyStored();
         if (isHovering(134, 16, 16, 54, mouseX, mouseY)) {
-            tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.energy_level", energyAmount + "/" + this.menu.blockEntity.energyHandler.getMaxEnergyStored() + "FE").getVisualOrderText());
+            tooltipList.add(Component.translatable(GeneratorGalore.MODID + ".screen.energy_level", currentEnergy + "/" + this.menu.blockEntity.energyHandler.getMaxEnergyStored() + "FE").getVisualOrderText());
         }
 
         if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
@@ -76,21 +87,116 @@ public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu>
                 canCharge ? GUI_FLUID_CHARGING : GUI_FLUID : canCharge ? GUI_SOLID_CHARGING : GUI_SOLID;
         guiGraphics.blit(GUI, getGuiLeft(), getGuiTop(), 0, 0, this.getXSize(), this.getYSize());
 
-        // Burn progress
-        if (this.menu.blockEntity.isLit()) {
-            int progress = this.menu.getLitProgress();
-            guiGraphics.blit(GUI, getGuiLeft() + 81, getGuiTop() + 50 - progress, 176, 12 - progress, 14, progress);
+        // Update energy interpolation
+        int currentEnergy = this.menu.blockEntity.energyHandler.getEnergyStored();
+        int maxEnergy = this.menu.blockEntity.energyHandler.getMaxEnergyStored();
+
+        // Initialize interpolation variables on first render to prevent overshooting
+        if (firstEnergyRender) {
+            lastEnergy = currentEnergy;
+            clientEnergy = currentEnergy;
+            firstEnergyRender = false;
         }
 
-        // Draw energy level
-        int energyLevel = (int) ((float) this.menu.blockEntity.energyHandler.getEnergyStored() * 54f / (float) this.menu.blockEntity.energyHandler.getMaxEnergyStored());
-        guiGraphics.blit(GUI, getGuiLeft() + 134, getGuiTop() + 70 - energyLevel, 176, 70 - energyLevel, 16, energyLevel + 1);
+        // Store last energy value and interpolate for smooth animation
+        if (lastEnergy != currentEnergy) {
+            clientEnergy = lastEnergy;
+            lastEnergy = currentEnergy;
+        }
+
+        // Calculate interpolated energy level with partial ticks for smooth animation
+        // Use float calculation for precision and round to nearest integer
+        float interpolatedEnergy = clientEnergy + (lastEnergy - clientEnergy) * partialTicks;
+        int energyLevel = Math.round((interpolatedEnergy / maxEnergy) * 54f);
+
+        // Burn progress - use vanilla flame animation
+        if (this.menu.blockEntity.isLit()) {
+            int progress = this.menu.getLitProgress();
+            // Use correct vanilla furnace flame sprite
+            guiGraphics.blitSprite(ResourceLocation.withDefaultNamespace("container/furnace/lit_progress"), 14, 14, 0, 0, getGuiLeft() + 81, getGuiTop() + 50 - progress, 14, progress);
+        }
+
+        // Realtime energy bar rendering - replaces legacy blit calls
+        if (maxEnergy > 0) {
+            // Calculate fill height: (current * totalHeight) / max
+            int fillHeight = (int) (((float) currentEnergy / maxEnergy) * 54f);
+
+            // Main energy bar (red) - grows from bottom up
+            if (fillHeight > 0) {
+                guiGraphics.fill(
+                    getGuiLeft() + 134, getGuiTop() + 70 - fillHeight,
+                    getGuiLeft() + 134 + 16, getGuiTop() + 70,
+                    0xFFFF0000 // Redstone red
+                );
+            }
+
+            // Left accent stripe (1 pixel, lighter red)
+            if (fillHeight > 0) {
+                guiGraphics.fill(
+                    getGuiLeft() + 134, getGuiTop() + 70 - fillHeight,
+                    getGuiLeft() + 134 + 1, getGuiTop() + 70,
+                    0xFFFF5555 // Lighter red accent
+                );
+            }
+        }
 
         if (this.menu.blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-            // Draw item tank
             FluidStack fluidStack = this.menu.blockEntity.fluidInventory.getFluidInTank(0);
-            if (fluidStack.getAmount() > 0) {
-                FluidContainerUtil.renderFluidTank(guiGraphics, this, fluidStack, this.menu.blockEntity.fluidInventory.getTankCapacity(0), 26, 16, 16, 54, 100);
+            int currentFluidAmount = fluidStack.getAmount();
+            int fluidCapacity = this.menu.blockEntity.fluidInventory.getTankCapacity(0);
+
+            // Initialize interpolation variables on first render to prevent overshooting
+            if (firstFluidRender) {
+                lastFluidAmount = currentFluidAmount;
+                clientFluidAmount = currentFluidAmount;
+                firstFluidRender = false;
+            }
+
+            // Update fluid interpolation for smooth animation
+            if (lastFluidAmount != currentFluidAmount) {
+                clientFluidAmount = lastFluidAmount;
+                lastFluidAmount = currentFluidAmount;
+            }
+
+            // Calculate interpolated fluid amount with partial ticks for smooth animation
+            float interpolatedFluidAmount = clientFluidAmount + (lastFluidAmount - clientFluidAmount) * partialTicks;
+
+            if (currentFluidAmount > 0) {
+                // Calculate fill height: (current * totalHeight) / max
+                int fluidFillHeight = (int) (((float) currentFluidAmount / fluidCapacity) * 54f);
+
+                // Try to get fluid color dynamically with precise lava detection
+                int fluidColor = 0xFF3663D9; // Default blue
+                if (!fluidStack.isEmpty()) {
+                    try {
+                        // Try to get fluid color using the same method as FluidContainerUtil
+                        var attributes = net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions.of(fluidStack.getFluid());
+                        int tintColor = attributes.getTintColor();
+
+                        // Precise lava color detection
+                        if (fluidStack.getFluid().getFluidType().toString().contains("lava") || tintColor == -1) {
+                            tintColor = 0xFFD45A12; // Strong lava orange
+                        }
+
+                        if (tintColor != 0xFFFFFFFF) { // If not white (default), use it
+                            fluidColor = tintColor;
+                        }
+                        // Ensure alpha channel is set
+                        fluidColor = (fluidColor & 0x00FFFFFF) | 0xFF000000;
+                    } catch (Exception e) {
+                        // Fallback to blue if color extraction fails
+                        fluidColor = 0xFF3663D9;
+                    }
+                }
+
+                // Realtime fluid bar rendering - grows from bottom up
+                if (fluidFillHeight > 0) {
+                    guiGraphics.fill(
+                        getGuiLeft() + 26, getGuiTop() + 70 - fluidFillHeight,
+                        getGuiLeft() + 26 + 16, getGuiTop() + 70,
+                        fluidColor
+                    );
+                }
             }
         }
     }
