@@ -103,10 +103,10 @@ public class JeiPlugin implements IModPlugin
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
             addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 1);
             if (generator.has8x()) {
-                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_8x")).getDefaultInstance(), 8);
+                addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 8);
             }
             if (generator.has64x()) {
-                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_64x")).getDefaultInstance(), 64);
+                addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 64);
             }
         });
     }

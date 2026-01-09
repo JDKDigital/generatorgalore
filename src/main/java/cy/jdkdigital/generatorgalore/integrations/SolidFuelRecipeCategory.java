@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.integrations;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.recipe.SolidFuelRecipe;
+import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import mezz.jei.api.constants.VanillaTypes;
@@ -31,7 +32,7 @@ public class SolidFuelRecipeCategory implements IRecipeCategory<SolidFuelRecipe>
     public SolidFuelRecipeCategory(IGuiHelper guiHelper) {
         ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/solid_fuel_recipe.png");
         this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "iron_generator"))));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "iron")).getBlockSupplier().get()));
     }
 
     @Override

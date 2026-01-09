@@ -55,7 +55,7 @@ public class Generator extends BaseEntityBlock
             .apply(builder, Generator::new)
     );
 
-    GeneratorObject generator;
+    private final GeneratorObject generator;
     private final int modifier;
 
     public Generator(Properties properties, GeneratorObject generator, int modifier) {
@@ -120,7 +120,6 @@ public class Generator extends BaseEntityBlock
     protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
         if (pLevel.getBlockEntity(pPos) instanceof GeneratorBlockEntity generatorBlockEntity) {
             if (!pLevel.isClientSide) {
-                generatorBlockEntity.refreshConnectedTileEntityCache();
                 pPlayer.openMenu(generatorBlockEntity, packetBuffer -> packetBuffer.writeBlockPos(pPos));
             }
             return InteractionResult.SUCCESS_NO_ITEM_USED;
@@ -128,23 +127,6 @@ public class Generator extends BaseEntityBlock
         return super.useWithoutItem(pState, pLevel, pPos, pPlayer, pHitResult);
     }
 
-    @Override
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState newState, boolean something) {
-        BlockEntity generatorTile = level.getBlockEntity(pos);
-        if (generatorTile instanceof GeneratorBlockEntity generatorBlockEntity) {
-            generatorBlockEntity.refreshConnectedTileEntityCache();
-        }
-        super.onPlace(state, level, pos, newState, something);
-    }
-
-    @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor level, BlockPos pos, BlockPos facingPos) {
-        BlockEntity generatorTile = level.getBlockEntity(pos);
-        if (generatorTile instanceof GeneratorBlockEntity generatorBlockEntity) {
-            generatorBlockEntity.refreshConnectedTileEntityCache();
-        }
-        return super.updateShape(state, direction, newState, level, pos, facingPos);
-    }
 
     @Override
     public void animateTick(BlockState pState, Level level, BlockPos pos, RandomSource random) {
@@ -161,7 +143,7 @@ public class Generator extends BaseEntityBlock
                             level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
                             break;
                         case ENCHANTMENT:
-//                            level.addParticle(ModParticles.RISING_ENCHANT_PARTICLE.get(), (double) pos.getX() + 0.5D, (double) pos.getY() + 1.0D, (double) pos.getZ() + 0.5D, random.nextFloat() / 2.0F, 5.0E-5D, random.nextFloat() / 2.0F);
+                            // Enchantment particle effect disabled for now
                             break;
                         default:
                             level.addParticle(ParticleTypes.LAVA, (double) pos.getX() + 0.5D, (double) pos.getY() + 1.0D, (double) pos.getZ() + 0.5D, random.nextFloat() / 2.0F, 5.0E-5D, random.nextFloat() / 2.0F);

@@ -17,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.block.SoundType;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -35,17 +37,32 @@ public class GeneratorCreator
             var generator = generatorOptional.get();
             var name = String.format("%s_%s", generator.getId().getPath(), "generator");
 
-            Supplier<Block> generatorBlock = GeneratorGalore.BLOCKS.register(name, () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 1));
+            Supplier<Block> generatorBlock = GeneratorGalore.BLOCKS.register(name, () -> new Generator(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(3.5F, 6.0F)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops(), generator, 1));
             generator.setBlockSupplier(generatorBlock);
             List<Supplier<Block>> generatorBlocks = new ArrayList<>();
             generatorBlocks.add(generatorBlock);
             if (generator.has8x() || !FMLEnvironment.production) {
-                Supplier<Block> gen8x = GeneratorGalore.BLOCKS.register(name + "_8x", () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 8));
+                Supplier<Block> gen8x = GeneratorGalore.BLOCKS.register(name + "_8x", () -> new Generator(
+                    BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.METAL)
+                        .strength(3.5F, 6.0F)
+                        .sound(SoundType.METAL)
+                        .requiresCorrectToolForDrops(), generator, 8));
                 generatorBlocks.add(gen8x);
                 GeneratorGalore.ITEMS.register(name + "_8x", () -> new BlockItem(gen8x.get(), new Item.Properties()));
             }
             if (generator.has64x() || !FMLEnvironment.production) {
-                Supplier<Block> gen64x = GeneratorGalore.BLOCKS.register(name + "_64x", () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 64));
+                Supplier<Block> gen64x = GeneratorGalore.BLOCKS.register(name + "_64x", () -> new Generator(
+                    BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.METAL)
+                        .strength(3.5F, 6.0F)
+                        .sound(SoundType.METAL)
+                        .requiresCorrectToolForDrops(), generator, 64));
                 generatorBlocks.add(gen64x);
                 GeneratorGalore.ITEMS.register(name + "_64x", () -> new BlockItem(gen64x.get(), new Item.Properties()));
             }
