@@ -88,6 +88,7 @@ dependencies {
     implementation fg.deobf("curse.maven:redstone-arsenal-70631:4970691")
     implementation fg.deobf("curse.maven:thermal-foundation-222880:4979840")
     implementation fg.deobf("curse.maven:thermal-dynamics-227443:4970699")
+    implementation fg.deobf("curse.maven:mekanism-268560:6552911")
 }
 
 def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta']

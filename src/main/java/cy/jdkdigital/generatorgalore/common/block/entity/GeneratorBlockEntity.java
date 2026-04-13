@@ -11,7 +11,6 @@ import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -63,6 +62,7 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     private final LazyOptional<IFluidHandler> fluidInventory;
     private List<IEnergyStorage> recipients = new ArrayList<>();
     private boolean hasLoaded = false;
+    private double fluidConsumeLeftover;
 
     public GeneratorBlockEntity(GeneratorObject generator, BlockPos blockPos, BlockState blockState) {
         super(generator.getBlockEntityType().get(), blockPos, blockState);
@@ -184,8 +184,9 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                     });
                 } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && energyHandler.getEnergyStored() + inputPowerAmount <= energyHandler.getMaxEnergyStored()) {
                     blockEntity.fluidInventory.ifPresent(fluidHandler -> blockEntity.energyHandler.ifPresent(handler -> {
-                        double fluidConsumeAmount = blockEntity.generator.getConsumptionRate() * tickRate;
-                        if (fluidHandler.getFluidInTank(0).getAmount() >= fluidConsumeAmount) {
+                        double fluidConsumeAmount = blockEntity.generator.getConsumptionRate() * tickRate + blockEntity.fluidConsumeLeftover;
+                        if (fluidHandler.getFluidInTank(0).getAmount() >= (int)fluidConsumeAmount) {
+                            blockEntity.fluidConsumeLeftover = fluidConsumeAmount - ((int)fluidConsumeAmount);
                             fluidHandler.drain((int) fluidConsumeAmount, IFluidHandler.FluidAction.EXECUTE);
                             hasConsumedFuel.set(true);
                         }

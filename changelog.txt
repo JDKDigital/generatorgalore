@@ -1,3 +1,8 @@
+1.20.1-1.2.5
+
+- Fixed liquid fuel not being consumed when the rate is below 0.5
+
+
 1.20.1-1.2.4
 
 - Generators will now only burn fuel if the internal energy buffer has room for the entire burn
