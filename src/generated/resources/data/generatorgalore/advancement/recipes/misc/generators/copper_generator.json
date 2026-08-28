@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:copper"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:copper_generator"
     }
   ],
   "parent": "minecraft:recipes/root",

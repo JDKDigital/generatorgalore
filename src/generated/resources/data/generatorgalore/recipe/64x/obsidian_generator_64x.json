@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:mod_loaded",
-      "modid": "removethisconditiontoenable"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:obsidian_generator_64x"
     }
   ],
   "type": "minecraft:crafting_shaped",

@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:emerald"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:emerald_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",

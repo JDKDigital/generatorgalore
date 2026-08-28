@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:emerald_generator_64x"
+    }
+  ],
   "type": "minecraft:block",
   "pools": [
     {

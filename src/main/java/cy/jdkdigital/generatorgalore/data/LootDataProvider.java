@@ -1,6 +1,7 @@
 package cy.jdkdigital.generatorgalore.data;
 
 import com.google.common.collect.Maps;
+import com.mojang.serialization.Codec;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,6 +19,10 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.neoforged.neoforge.common.conditions.ConditionalOps;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
+import net.neoforged.neoforge.common.conditions.WithConditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -26,6 +31,8 @@ import java.util.function.Function;
 
 public class LootDataProvider implements DataProvider
 {
+    private static final Codec<Optional<WithConditions<LootTable>>> CONDITIONAL_TABLE_CODEC = ConditionalOps.createConditionalCodecWithConditions(LootTable.DIRECT_CODEC);
+
     private final PackOutput.PathProvider pathProvider;
     private final List<LootTableProvider.SubProviderEntry> subProviders;
     private final CompletableFuture<HolderLookup.Provider> registries;
@@ -57,14 +64,19 @@ public class LootDataProvider implements DataProvider
             });
         });
 
-        return CompletableFuture.allOf(map.entrySet().stream().map((entry) -> {
-            return DataProvider.saveStable(pOutput, pProvider, LootTable.DIRECT_CODEC, entry.getValue(), this.pathProvider.json(entry.getKey()));
+        return CompletableFuture.allOf(map.entrySet().stream().<CompletableFuture<?>>map((entry) -> {
+            var condition = LootProvider.conditions.get(entry.getKey());
+            if (condition == null) {
+                return DataProvider.saveStable(pOutput, pProvider, LootTable.DIRECT_CODEC, entry.getValue(), this.pathProvider.json(entry.getKey()));
+            }
+            return DataProvider.saveStable(pOutput, pProvider, CONDITIONAL_TABLE_CODEC, Optional.of(new WithConditions<>(List.of(condition), entry.getValue())), this.pathProvider.json(entry.getKey()));
         }).toArray(CompletableFuture[]::new));
     }
 
     public static class LootProvider extends BlockLootSubProvider
     {
         private static final Map<Block, Function<Block, LootTable.Builder>> functionTable = new HashMap<>();
+        private static final Map<ResourceLocation, ICondition> conditions = new HashMap<>();
 
         private final List<Block> knownBlocks = new ArrayList<>();
 
@@ -75,11 +87,16 @@ public class LootDataProvider implements DataProvider
         @Override
         protected void generate() {
             GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
-                dropSelf(generatorObject.getBlockSupplier().get());
                 var base = BuiltInRegistries.BLOCK.getKey(generatorObject.getBlockSupplier().get());
-                dropSelf(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_8x")));
-                dropSelf(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_64x")));
+                dropSelfWhenRegistered(generatorObject.getBlockSupplier().get());
+                dropSelfWhenRegistered(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_8x")));
+                dropSelfWhenRegistered(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_64x")));
             });
+        }
+
+        private void dropSelfWhenRegistered(Block block) {
+            dropSelf(block);
+            conditions.put(block.getLootTable().location(), new ItemExistsCondition(BuiltInRegistries.BLOCK.getKey(block)));
         }
 
         @Override

@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:potion"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:potion_generator_64x"
     }
   ],
   "type": "minecraft:crafting_shaped",

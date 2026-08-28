@@ -2,6 +2,7 @@ package cy.jdkdigital.generatorgalore.integrations;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.recipe.FluidFuelRecipe;
+import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -14,10 +15,8 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
@@ -25,10 +24,13 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
     private final IDrawable background;
     private final IDrawable icon;
 
+    private static final int WIDTH = 126;
+    private static final int HEIGHT = 70;
+
     public FluidFuelRecipeCategory(IGuiHelper guiHelper) {
         ResourceLocation location = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "textures/gui/jei/fluid_fuel_recipe.png");
-        this.background = guiHelper.createDrawable(location, 0, 0, 126, 70);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic_generator"))));
+        this.background = guiHelper.createDrawable(location, 0, 0, WIDTH, HEIGHT);
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, JeiPlugin.categoryIcon(GeneratorUtil.FuelType.FLUID));
     }
 
     @Override
@@ -42,8 +44,13 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
     }
 
     @Override
-    public @NotNull IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getHeight() {
+        return HEIGHT;
     }
 
     @Override
@@ -65,8 +72,11 @@ public class FluidFuelRecipeCategory implements IRecipeCategory<FluidFuelRecipe>
     @Override
     public void draw(@NotNull FluidFuelRecipe recipe, @NotNull IRecipeSlotsView recipeSlotsView, @NotNull GuiGraphics poseStack, double mouseX, double mouseY) {
         Minecraft minecraft = Minecraft.getInstance();
-        poseStack.drawString(minecraft.font, "Rate: " + recipe.rate() + "FE/t", 37F, 14F, 4210752, false);
-        poseStack.drawString(minecraft.font, "Burn rate: " + recipe.consumptionRate() + "mB/t", 37F, 32F, 4210752, false);
-        poseStack.drawString(minecraft.font, "Total: " + (int) (recipe.rate() / recipe.consumptionRate() * 1000) + "FE/B", 37F, 50F, 4210752, false);
+        background.draw(poseStack);
+        poseStack.drawString(minecraft.font, Component.translatable(GeneratorGalore.MODID + ".recipe.rate", recipe.rate()), 37, 14, 4210752, false);
+        poseStack.drawString(minecraft.font, Component.translatable(GeneratorGalore.MODID + ".recipe.burn_rate", recipe.consumptionRate()), 37, 32, 4210752, false);
+        if (recipe.consumptionRate() > 0) {
+            poseStack.drawString(minecraft.font, Component.translatable(GeneratorGalore.MODID + ".recipe.total_bucket", (int) (recipe.rate() / recipe.consumptionRate() * 1000)), 37, 50, 4210752, false);
+        }
     }
 }

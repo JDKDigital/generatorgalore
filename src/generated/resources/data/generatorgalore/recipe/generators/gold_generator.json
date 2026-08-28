@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:gold"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:gold_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",

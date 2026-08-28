@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:honey_generator_64x"
+    }
+  ],
   "type": "minecraft:block",
   "pools": [
     {

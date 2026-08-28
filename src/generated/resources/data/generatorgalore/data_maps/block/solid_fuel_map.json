@@ -3,8 +3,8 @@
     "generatorgalore:ender_generator": {
       "neoforge:conditions": [
         {
-          "type": "generatorgalore:generator_exists",
-          "generator": "generatorgalore:ender"
+          "type": "neoforge:item_exists",
+          "item": "generatorgalore:ender_generator"
         }
       ],
       "fuels": [
@@ -29,8 +29,8 @@
     "generatorgalore:halitosis_generator": {
       "neoforge:conditions": [
         {
-          "type": "generatorgalore:generator_exists",
-          "generator": "generatorgalore:halitosis"
+          "type": "neoforge:item_exists",
+          "item": "generatorgalore:halitosis_generator"
         }
       ],
       "fuels": [

@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:enchantment"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:enchantment_generator_8x"
     }
   ],
   "type": "minecraft:crafting_shaped",

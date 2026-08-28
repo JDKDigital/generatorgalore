@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:halitosis"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:ender_to_halitosis_upgrade"
     }
   ],
   "parent": "minecraft:recipes/root",

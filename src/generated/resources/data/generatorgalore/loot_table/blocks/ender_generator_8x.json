@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:ender_generator_8x"
+    }
+  ],
   "type": "minecraft:block",
   "pools": [
     {

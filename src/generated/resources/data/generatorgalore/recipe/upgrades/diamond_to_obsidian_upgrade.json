@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:obsidian"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:diamond_to_obsidian_upgrade"
     }
   ],
   "type": "minecraft:crafting_shaped",

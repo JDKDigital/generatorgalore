@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:iron"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:iron_generator"
     }
   ],
   "parent": "minecraft:recipes/root",

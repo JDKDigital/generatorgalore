@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:netherite"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:netherite_generator_8x"
     }
   ],
   "type": "minecraft:crafting_shaped",

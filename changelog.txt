@@ -1,3 +1,11 @@
+1.21.1-1.7.0
+
+- Fixed loot tables failing to load for generator tiers that are disabled
+- Generator tier recipes only load when the relevant generators exist
+- Fixed the JEI plugin failing to load when the magmatic or iron generator is removed
+- JEI fuel category labels are now translatable
+
+
 1.21.1-1.6.3
 
 - Fixed fuel validation for fluid generators

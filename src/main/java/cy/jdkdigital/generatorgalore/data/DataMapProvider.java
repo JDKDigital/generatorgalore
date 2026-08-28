@@ -1,7 +1,6 @@
 package cy.jdkdigital.generatorgalore.data;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import cy.jdkdigital.generatorgalore.common.conditions.GeneratorExistsCondition;
 import cy.jdkdigital.generatorgalore.common.datamap.FluidFuelMap;
 import cy.jdkdigital.generatorgalore.common.datamap.PotionComponentIngredient;
 import cy.jdkdigital.generatorgalore.common.datamap.SolidFuelMap;
@@ -19,6 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 
@@ -37,24 +37,24 @@ public class DataMapProvider extends net.neoforged.neoforge.common.data.DataMapP
         final var fluidFuels = builder(GeneratorGalore.FLUID_FUEL_MAP);
         final var solidFuels = builder(GeneratorGalore.SOLID_FUEL_MAP);
 
-        var lavaGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic");
-        fluidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(lavaGen).getBlockSupplier().get().builtInRegistryHolder().value()),
+        var lavaGen = generatorBlockId("magmatic");
+        fluidFuels.add(lavaGen,
                 new FluidFuelMap(List.of(
                         new FluidFuelMap.FluidFuel(FluidIngredient.tag(FluidTags.create(ResourceLocation.withDefaultNamespace("lava"))), 0.4d, 40d)
-                )), false, new GeneratorExistsCondition(lavaGen));
+                )), false, new ItemExistsCondition(lavaGen));
 
-        var enderGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "ender");
-        solidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(enderGen).getBlockSupplier().get().builtInRegistryHolder().value()),
+        var enderGen = generatorBlockId("ender");
+        solidFuels.add(enderGen,
                 new SolidFuelMap(List.of(
                         new SolidFuelMap.SolidFuel(Ingredient.of(Items.ENDER_PEARL), 1.0f, 1600, 96),
                         new SolidFuelMap.SolidFuel(Ingredient.of(Items.ENDER_EYE), 1.0f, 3200, 80)
-                )), false, new GeneratorExistsCondition(enderGen));
+                )), false, new ItemExistsCondition(enderGen));
 
-        var halitosisGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "halitosis");
-        solidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(halitosisGen).getBlockSupplier().get().builtInRegistryHolder().value()),
+        var halitosisGen = generatorBlockId("halitosis");
+        solidFuels.add(halitosisGen,
                 new SolidFuelMap(List.of(
                         new SolidFuelMap.SolidFuel(Ingredient.of(Items.DRAGON_BREATH), 1.0f, 12000, 128)
-                )), false, new GeneratorExistsCondition(halitosisGen));
+                )), false, new ItemExistsCondition(halitosisGen));
 
 //        List<SolidFuelMap.SolidFuel> potionFuels = new ArrayList<>();
 //        provider.lookup(Registries.POTION).ifPresent(
@@ -79,5 +79,10 @@ public class DataMapProvider extends net.neoforged.neoforge.common.data.DataMapP
 //        var potionGen = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "potion");
 //        solidFuels.add(BuiltInRegistries.BLOCK.getKey(GeneratorRegistry.generators.get(potionGen).getBlockSupplier().get().builtInRegistryHolder().value()),
 //                new SolidFuelMap(potionFuels), false, new GeneratorExistsCondition(potionGen));
+    }
+
+    private static ResourceLocation generatorBlockId(String name) {
+        var generator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, name));
+        return BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get().builtInRegistryHolder().value());
     }
 }

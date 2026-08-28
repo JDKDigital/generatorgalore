@@ -24,6 +24,11 @@ public class LanguageProvider extends net.neoforged.neoforge.common.data.Languag
         add("generatorgalore.screen.fuel_type", "Fuel type: %s");
         add("generatorgalore.recipe.solid_fuel", "Solid Fuel");
         add("generatorgalore.recipe.fluid_fuel", "Fluid Fuel");
+        add("generatorgalore.recipe.rate", "Rate: %sFE/t");
+        add("generatorgalore.recipe.burn_rate", "Burn rate: %smB/t");
+        add("generatorgalore.recipe.burn_time", "Burntime: %s");
+        add("generatorgalore.recipe.total_bucket", "Total: %sFE/B");
+        add("generatorgalore.recipe.total", "Total: %sFE");
 
         GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
             add("block.generatorgalore." + resourceLocation.getPath() + "_generator", capName(resourceLocation.getPath()) + " Generator");

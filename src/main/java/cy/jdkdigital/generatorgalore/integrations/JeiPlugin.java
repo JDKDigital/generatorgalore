@@ -60,14 +60,18 @@ public class JeiPlugin implements IModPlugin
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
-            if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-                registration.addRecipeCatalyst(new ItemStack(generator.getBlockSupplier().get()), FLUID_FUEL_RECIPE_TYPE);
-            } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.SOLID) && generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG) && generator.getFuelList() == null) {
-                registration.addRecipeCatalyst(new ItemStack(generator.getBlockSupplier().get()), SOLID_FUEL_RECIPE_TYPE);
-            } else {
-                registration.addRecipeCatalyst(new ItemStack(generator.getBlockSupplier().get()), SOLID_FUEL_RECIPE_TYPE);
-            }
+            RecipeType<?> recipeType = generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? FLUID_FUEL_RECIPE_TYPE : SOLID_FUEL_RECIPE_TYPE;
+            registration.addRecipeCatalyst(new ItemStack(generator.getBlockSupplier().get()), recipeType);
         });
+    }
+
+    static ItemStack categoryIcon(GeneratorUtil.FuelType fuelType) {
+        return GeneratorRegistry.generators.values().stream()
+                .filter(generator -> generator.getFuelType().equals(fuelType))
+                .findFirst()
+                .or(() -> GeneratorRegistry.generators.values().stream().findFirst())
+                .map(generator -> new ItemStack(generator.getBlockSupplier().get()))
+                .orElse(new ItemStack(Items.FURNACE));
     }
 
     @Override

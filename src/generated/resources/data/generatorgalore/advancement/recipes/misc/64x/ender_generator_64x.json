@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:ender"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:ender_generator_64x"
     }
   ],
   "parent": "minecraft:recipes/root",

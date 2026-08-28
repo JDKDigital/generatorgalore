@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:honey"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:culinary_to_honey_upgrade"
     }
   ],
   "type": "minecraft:crafting_shaped",

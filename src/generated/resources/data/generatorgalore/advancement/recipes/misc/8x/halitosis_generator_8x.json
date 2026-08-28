@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "generatorgalore:generator_exists",
-      "generator": "generatorgalore:halitosis"
+      "type": "neoforge:item_exists",
+      "item": "generatorgalore:halitosis_generator_8x"
     }
   ],
   "parent": "minecraft:recipes/root",
