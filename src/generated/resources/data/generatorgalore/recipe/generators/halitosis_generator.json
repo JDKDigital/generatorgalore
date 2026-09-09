@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:halitosis_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:halitosis_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:ender_generator"
-    },
-    "I": {
-      "tag": "c:gems/amethyst"
-    },
-    "R": {
-      "item": "minecraft:end_rod"
-    }
+    "G": "generatorgalore:ender_generator",
+    "I": "#c:gems/amethyst",
+    "R": "minecraft:end_rod"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:halitosis_generator"
   }
 }

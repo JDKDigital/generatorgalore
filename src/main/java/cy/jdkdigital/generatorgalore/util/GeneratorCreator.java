@@ -8,10 +8,11 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.common.block.Generator;
 import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
+import cy.jdkdigital.generatorgalore.common.item.GeneratorBlockItem;
 import cy.jdkdigital.generatorgalore.common.item.UpgradeItem;
 import cy.jdkdigital.generatorgalore.init.ModBlockEntityTypes;
 import cy.jdkdigital.generatorgalore.init.ModContainerTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -28,36 +29,36 @@ import java.util.function.Supplier;
 
 public class GeneratorCreator
 {
-    public static GeneratorObject create(ResourceLocation id, JsonObject json) throws JsonSyntaxException {
+    public static GeneratorObject create(Identifier id, JsonObject json) throws JsonSyntaxException {
         var generatorOptional = GeneratorObject.codec(id).parse(JsonOps.INSTANCE, json).result();
 
         if (generatorOptional.isPresent()) {
             var generator = generatorOptional.get();
             var name = String.format("%s_%s", generator.getId().getPath(), "generator");
 
-            Supplier<Block> generatorBlock = GeneratorGalore.BLOCKS.register(name, () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 1));
+            Supplier<Block> generatorBlock = GeneratorGalore.BLOCKS.registerBlock(name, properties -> new Generator(properties, generator, 1), () -> BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE));
             generator.setBlockSupplier(generatorBlock);
             List<Supplier<Block>> generatorBlocks = new ArrayList<>();
             generatorBlocks.add(generatorBlock);
-            if (generator.has8x() || !FMLEnvironment.production) {
-                Supplier<Block> gen8x = GeneratorGalore.BLOCKS.register(name + "_8x", () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 8));
+            if (generator.has8x() || !FMLEnvironment.isProduction()) {
+                Supplier<Block> gen8x = GeneratorGalore.BLOCKS.registerBlock(name + "_8x", properties -> new Generator(properties, generator, 8), () -> BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE));
                 generatorBlocks.add(gen8x);
-                GeneratorGalore.ITEMS.register(name + "_8x", () -> new BlockItem(gen8x.get(), new Item.Properties()));
+                GeneratorGalore.ITEMS.registerItem(name + "_8x", properties -> new GeneratorBlockItem(gen8x.get(), properties, generator, 8), () -> new Item.Properties().useBlockDescriptionPrefix());
             }
-            if (generator.has64x() || !FMLEnvironment.production) {
-                Supplier<Block> gen64x = GeneratorGalore.BLOCKS.register(name + "_64x", () -> new Generator(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE), generator, 64));
+            if (generator.has64x() || !FMLEnvironment.isProduction()) {
+                Supplier<Block> gen64x = GeneratorGalore.BLOCKS.registerBlock(name + "_64x", properties -> new Generator(properties, generator, 64), () -> BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE));
                 generatorBlocks.add(gen64x);
-                GeneratorGalore.ITEMS.register(name + "_64x", () -> new BlockItem(gen64x.get(), new Item.Properties()));
+                GeneratorGalore.ITEMS.registerItem(name + "_64x", properties -> new GeneratorBlockItem(gen64x.get(), properties, generator, 64), () -> new Item.Properties().useBlockDescriptionPrefix());
             }
             generator.setBlockEntityType(ModBlockEntityTypes.register(name, () -> ModBlockEntityTypes.createBlockEntityType((pos, state) -> new GeneratorBlockEntity(generator, pos, state), generatorBlocks.stream().map(Supplier::get).toList().toArray(new Block[0]))));
 
             generator.setMenuType(ModContainerTypes.register(name, GeneratorMenu::new));
 
-            GeneratorGalore.ITEMS.register(name, () -> new BlockItem(generator.getBlockSupplier().get(), new Item.Properties()));
+            GeneratorGalore.ITEMS.registerItem(name, properties -> new GeneratorBlockItem(generator.getBlockSupplier().get(), properties, generator, 1), () -> new Item.Properties().useBlockDescriptionPrefix());
 
             if (json.has("previousTier")) {
                 String previousTier = json.get("previousTier").getAsString();
-                generator.setUpgradeSupplier(GeneratorGalore.ITEMS.register(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", () -> new UpgradeItem(new Item.Properties(), previousTier, generator)));
+                generator.setUpgradeSupplier(GeneratorGalore.ITEMS.registerItem(previousTier + "_to_" + generator.getId().getPath() + "_upgrade", properties -> new UpgradeItem(properties, previousTier, generator)));
             }
 
             // Custom fuels list
@@ -72,11 +73,11 @@ public class GeneratorCreator
         return null;
     }
 
-    private static Map<ResourceLocation, Fuel> parseFuelList(GeneratorObject generator, JsonElement fuelList) {
-        Map<ResourceLocation, GeneratorCreator.Fuel> fuels = new HashMap<>();
+    private static Map<Identifier, Fuel> parseFuelList(GeneratorObject generator, JsonElement fuelList) {
+        Map<Identifier, GeneratorCreator.Fuel> fuels = new HashMap<>();
         for (JsonElement jsonElement : fuelList.getAsJsonArray()) {
             var el = jsonElement.getAsJsonObject();
-            var id = ResourceLocation.parse(el.get("item").getAsString());
+            var id = Identifier.parse(el.get("item").getAsString());
             fuels.put(id, new Fuel(
                 el.has("rate") ? el.get("rate").getAsFloat() : (float) generator.getGenerationRate(),
                 el.get("burnTime").getAsInt()

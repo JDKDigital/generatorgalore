@@ -1,24 +1,24 @@
 package cy.jdkdigital.generatorgalore.common.container;
 
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
-public class ManualItemHandler extends ItemStackHandler
+public class ManualItemHandler extends ItemStacksResourceHandler
 {
     public ManualItemHandler(int size) {
         super(size);
     }
 
-    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate, boolean fromAutomation) {
-        if (fromAutomation && this.isItemValid(slot, this.getStackInSlot(slot))) {
-            return ItemStack.EMPTY;
+    @Override
+    public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+        if (isValid(index, resource)) {
+            return 0;
         }
-        return super.extractItem(slot, amount, simulate);
+        return super.extract(index, resource, amount, transaction);
     }
 
-    @Override
-    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return extractItem(slot, amount, simulate, true);
+    public int extractInternal(int index, ItemResource resource, int amount, TransactionContext transaction) {
+        return super.extract(index, resource, amount, transaction);
     }
 }

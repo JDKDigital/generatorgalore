@@ -1,10 +1,4 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:netherstar_generator_8x"
-    }
-  ],
   "type": "minecraft:block",
   "pools": [
     {

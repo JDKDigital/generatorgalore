@@ -13,13 +13,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -27,10 +25,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemUtil;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +55,8 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     private final int modifier;
     public final ControlledEnergyStorage energyHandler;
     public final ManualItemHandler inventoryHandler;
-    public final FluidTank fluidInventory;
-    private List<IEnergyStorage> recipients = new ArrayList<>();
+    public final FluidStacksResourceHandler fluidInventory;
+    private List<EnergyHandler> recipients = new ArrayList<>();
     private boolean hasLoaded = false;
 
     public GeneratorBlockEntity(GeneratorObject generator, BlockPos blockPos, BlockState blockState) {
@@ -63,30 +67,32 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         this.energyHandler = new ControlledEnergyStorage(generator.getBufferCapacity() * this.modifier);
         this.inventoryHandler = new ManualItemHandler(2) {
             @Override
-            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-                if (slot == GeneratorMenu.SLOT_CHARGE) {
-                    return stack.getCapability(Capabilities.EnergyStorage.ITEM) != null;
+            public boolean isValid(int index, ItemResource resource) {
+                if (resource.isEmpty()) {
+                    return false;
+                }
+                if (index == GeneratorMenu.SLOT_CHARGE) {
+                    return ItemAccess.forStack(resource.toStack()).getCapability(Capabilities.Energy.ITEM) != null;
                 }
 
-                return generator.isValidFuelItem(stack);
+                return generator.isValidFuelItem(level, resource.toStack());
             }
 
             @Override
-            protected void onContentsChanged(int slot) {
+            protected void onContentsChanged(int index, ItemStack previousContents) {
                 setChanged();
             }
         };
-        this.fluidInventory = new FluidTank(10000) {
+        this.fluidInventory = new FluidStacksResourceHandler(1, 10000) {
             @Override
-            public boolean isFluidValid(FluidStack stack) {
-                return generator.isValidFuelFluid(stack);
+            public boolean isValid(int index, FluidResource resource) {
+                return generator.isValidFuelFluid(resource.toStack(1));
             }
 
             @Override
-            protected void onContentsChanged() {
-                super.onContentsChanged();
+            protected void onContentsChanged(int index, FluidStack previousContents) {
                 if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-                    fluidId = BuiltInRegistries.FLUID.getId(getFluid().getFluid());
+                    fluidId = BuiltInRegistries.FLUID.getId(getResource(0).getFluid());
                     setChanged();
                 }
             }
@@ -109,14 +115,14 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                     blockEntity.litTime = Math.max(0, blockEntity.litTime - tickRate);
                 }
                 // Consume fuels
-                ItemStack fuelStack = blockEntity.inventoryHandler.getStackInSlot(GeneratorMenu.SLOT_FUEL);
-                if (!blockEntity.isLit() && !fuelStack.isEmpty() && blockEntity.inventoryHandler.isItemValid(GeneratorMenu.SLOT_FUEL, fuelStack) && blockEntity.energyHandler.getEnergyStored() < blockEntity.energyHandler.getMaxEnergyStored()) {
+                ItemStack fuelStack = ItemUtil.getStack(blockEntity.inventoryHandler, GeneratorMenu.SLOT_FUEL);
+                if (!blockEntity.isLit() && !fuelStack.isEmpty() && blockEntity.inventoryHandler.isValid(GeneratorMenu.SLOT_FUEL, ItemResource.of(fuelStack)) && blockEntity.energyHandler.getAmountAsInt() < blockEntity.energyHandler.getCapacityAsInt()) {
                     Pair<Float, Integer> rate = blockEntity.generator.getGenerationRateForItem(blockEntity.level, fuelStack);
 
                     // Check if energy storage has room for the entire burn or is half full
                     boolean shouldBurn =
-                            blockEntity.energyHandler.getEnergyStored() < (blockEntity.energyHandler.getMaxEnergyStored() / 2) ||
-                            (rate.getFirst() * rate.getSecond()) <= (blockEntity.energyHandler.getMaxEnergyStored() - blockEntity.energyHandler.getEnergyStored());
+                            blockEntity.energyHandler.getAmountAsInt() < (blockEntity.energyHandler.getCapacityAsInt() / 2) ||
+                            (rate.getFirst() * rate.getSecond()) <= (blockEntity.energyHandler.getCapacityAsInt() - blockEntity.energyHandler.getAmountAsInt());
 
                     if (shouldBurn) {
                         blockEntity.generator.setGenerationRate(rate.getFirst());
@@ -128,12 +134,16 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                         }
                         blockEntity.litDuration = blockEntity.litTime;
                         if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
-                            // strip enchantments
-                            blockEntity.inventoryHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, new ItemStack(fuelStack.getItem() instanceof EnchantedBookItem ? Items.BOOK : fuelStack.getItem()));
-                        } else if (!fuelStack.getCraftingRemainingItem().isEmpty() && fuelStack.getCount() == 1) {
-                            blockEntity.inventoryHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, fuelStack.getCraftingRemainingItem());
+                            ItemStack stripped = new ItemStack(fuelStack.is(Items.ENCHANTED_BOOK) ? Items.BOOK : fuelStack.getItem());
+                            blockEntity.inventoryHandler.set(GeneratorMenu.SLOT_FUEL, ItemResource.of(stripped), stripped.getCount());
+                        } else if (fuelStack.getCraftingRemainder() != null && !fuelStack.getCraftingRemainder().create().isEmpty() && fuelStack.getCount() == 1) {
+                            ItemStack remaining = fuelStack.getCraftingRemainder().create();
+                            blockEntity.inventoryHandler.set(GeneratorMenu.SLOT_FUEL, ItemResource.of(remaining), remaining.getCount());
                         } else {
-                            fuelStack.shrink(1);
+                            try (Transaction tx = Transaction.openRoot()) {
+                                blockEntity.inventoryHandler.extractInternal(GeneratorMenu.SLOT_FUEL, ItemResource.of(fuelStack), 1, tx);
+                                tx.commit();
+                            }
                         }
                     }
                 }
@@ -141,13 +151,16 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                 if (blockEntity.isLit()) {
                     hasConsumedFuel.set(true);
                 }
-            } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && blockEntity.energyHandler.getEnergyStored() + inputPowerAmount <= blockEntity.energyHandler.getMaxEnergyStored()) {
-                var fluidStack = blockEntity.fluidInventory.getFluidInTank(0);
+            } else if (blockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && blockEntity.energyHandler.getAmountAsInt() + inputPowerAmount <= blockEntity.energyHandler.getCapacityAsInt()) {
+                var fluidStack = blockEntity.fluidInventory.getResource(0).toStack((int) blockEntity.fluidInventory.getAmountAsLong(0));
                 Pair<Double, Double> rate = blockEntity.generator.getGenerationRateForFluid(fluidStack);
                 if (rate != null) {
                     double fluidConsumeAmount = rate.getSecond() * tickRate * blockEntity.modifier;
-                    if (blockEntity.fluidInventory.getFluidInTank(0).getAmount() >= fluidConsumeAmount) {
-                        blockEntity.fluidInventory.drain((int) fluidConsumeAmount, IFluidHandler.FluidAction.EXECUTE);
+                    if (blockEntity.fluidInventory.getAmountAsLong(0) >= fluidConsumeAmount) {
+                        try (Transaction tx = Transaction.openRoot()) {
+                            blockEntity.fluidInventory.extract(0, blockEntity.fluidInventory.getResource(0), (int) fluidConsumeAmount, tx);
+                            tx.commit();
+                        }
                         blockEntity.generator.setGenerationRate(rate.getFirst());
                         blockEntity.generator.setConsumptionRate(rate.getSecond());
                         hasConsumedFuel.set(true);
@@ -162,7 +175,10 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
                 int addedPower = (int) inputPowerAmount;
                 blockEntity.remainder = inputPowerAmount - addedPower;
 
-                blockEntity.energyHandler.receiveEnergy(addedPower, false, true);
+                try (Transaction tx = Transaction.openRoot()) {
+                    blockEntity.energyHandler.insertInternal(addedPower, tx);
+                    tx.commit();
+                }
                 blockEntity.setOn(true);
             } else {
                 blockEntity.setOn(false);
@@ -186,37 +202,37 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     }
 
     private void setOn(boolean isOn) {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.setBlockAndUpdate(worldPosition, getBlockState().setValue(BlockStateProperties.LIT, isOn));
         }
     }
 
     private void sendOutPower(int amount) {
         if (this.level != null) {
-            AtomicInteger capacity = new AtomicInteger(energyHandler.getEnergyStored());
+            AtomicInteger capacity = new AtomicInteger(energyHandler.getAmountAsInt());
             if (capacity.get() > 0) {
                 AtomicBoolean dirty = new AtomicBoolean(false);
 
                 if (generator.hasChargeSlot()) {
-                    var chargeItem = inventoryHandler.getStackInSlot(GeneratorMenu.SLOT_CHARGE);
+                    var chargeItem = ItemUtil.getStack(inventoryHandler, GeneratorMenu.SLOT_CHARGE);
                     if (!chargeItem.isEmpty()) {
-                        var chargeItemHandler = chargeItem.getCapability(Capabilities.EnergyStorage.ITEM);
+                        var chargeItemHandler = ItemAccess.forHandlerIndex(inventoryHandler, GeneratorMenu.SLOT_CHARGE).getCapability(Capabilities.Energy.ITEM);
                         if (chargeItemHandler != null) {
-                            int received = chargeItemHandler.receiveEnergy(Math.min(capacity.get(), amount), false);
+                            int received = transferTo(chargeItemHandler, Math.min(capacity.get(), amount));
                             capacity.addAndGet(-received);
-                            energyHandler.extractEnergy(received, false);
-                            dirty.set(true);
+                            dirty.set(received > 0);
                         }
                     }
                 }
 
-                for (IEnergyStorage handler : recipients) {
+                for (EnergyHandler handler : recipients) {
                     boolean doContinue = capacity.get() > 0;
-                    if (handler.canReceive() && doContinue) {
-                        int received = handler.receiveEnergy(Math.min(capacity.get(), amount), false);
+                    if (doContinue) {
+                        int received = transferTo(handler, Math.min(capacity.get(), amount));
                         capacity.addAndGet(-received);
-                        energyHandler.extractEnergy(received, false);
-                        dirty.set(true);
+                        if (received > 0) {
+                            dirty.set(true);
+                        }
                     }
 
                     if (!doContinue) {
@@ -230,6 +246,20 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
         }
     }
 
+    private int transferTo(EnergyHandler recipient, int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        try (Transaction tx = Transaction.openRoot()) {
+            int received = recipient.insert(amount, tx);
+            if (received > 0 && energyHandler.extract(received, tx) == received) {
+                tx.commit();
+                return received;
+            }
+        }
+        return 0;
+    }
+
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
@@ -238,10 +268,10 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
 
     public void refreshConnectedTileEntityCache() {
         if (level instanceof ServerLevel) {
-            List<IEnergyStorage> recipients = new ArrayList<>();
+            List<EnergyHandler> recipients = new ArrayList<>();
             Direction[] directions = Direction.values();
             for (Direction direction : directions) {
-                IEnergyStorage energyCap = level.getCapability(Capabilities.EnergyStorage.BLOCK, worldPosition.relative(direction), direction.getOpposite());
+                EnergyHandler energyCap = level.getCapability(Capabilities.Energy.BLOCK, worldPosition.relative(direction), direction.getOpposite());
                 if (energyCap != null) {
                     recipients.add(energyCap);
                 }
@@ -256,57 +286,46 @@ public class GeneratorBlockEntity extends CapabilityBlockEntity
     }
 
     @Override
-    protected void loadAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
-        super.loadAdditional(pTag, pRegistries);
-        litTime = pTag.getInt("litTime");
-        litDuration = pTag.getInt("litDuration");
-        if (pTag.contains("generationRate")) {
-            generator.setGenerationRate(pTag.getDouble("generationRate"));
-            generator.setConsumptionRate(pTag.getDouble("consumptionRate"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        litTime = input.getIntOr("litTime", 0);
+        litDuration = input.getIntOr("litDuration", 0);
+        double generationRate = input.getDoubleOr("generationRate", 0);
+        if (generationRate > 0) {
+            generator.setGenerationRate(generationRate);
+            generator.setConsumptionRate(input.getDoubleOr("consumptionRate", generator.getConsumptionRate()));
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider pRegistries) {
-        super.saveAdditional(pTag, pRegistries);
-        pTag.putInt("litTime", litTime);
-        pTag.putInt("litDuration", litDuration);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("litTime", litTime);
+        output.putInt("litDuration", litDuration);
         if (generator.getGenerationRate() != generator.getOriginalGenerationRate()) {
-            pTag.putDouble("generationRate", generator.getGenerationRate());
+            output.putDouble("generationRate", generator.getGenerationRate());
         }
         if (generator.getConsumptionRate() != generator.getOriginalConsumptionRate()) {
-            pTag.putDouble("consumptionRate", generator.getConsumptionRate());
+            output.putDouble("consumptionRate", generator.getConsumptionRate());
         }
     }
 
     @Override
-    public void savePacketNBT(CompoundTag tag, HolderLookup.Provider pRegistries) {
-        tag.put("inv", inventoryHandler.serializeNBT(pRegistries));
-
-        tag.put("energy", energyHandler.serializeNBT(pRegistries));
-
-        CompoundTag nbt = new CompoundTag();
-        fluidInventory.writeToNBT(pRegistries, nbt);
-        tag.put("item", nbt);
+    public void savePacketNBT(ValueOutput output) {
+        inventoryHandler.serialize(output.child("inv"));
+        energyHandler.serialize(output.child("energy"));
+        fluidInventory.serialize(output.child("item"));
     }
 
     @Override
-    public void loadPacketNBT(CompoundTag tag, HolderLookup.Provider pRegistries) {
-        if (tag.contains("inv")) {
-            inventoryHandler.deserializeNBT(pRegistries, tag.getCompound("inv"));
-        }
-
-        if (tag.contains("energy")) {
-            energyHandler.deserializeNBT(pRegistries, tag.get("energy"));
-        }
-
-        if (tag.contains("item")) {
-            fluidInventory.readFromNBT(pRegistries, tag.getCompound("item"));
-        }
+    public void loadPacketNBT(ValueInput input) {
+        input.child("inv").ifPresent(inventoryHandler::deserialize);
+        input.child("energy").ifPresent(energyHandler::deserialize);
+        input.child("item").ifPresent(fluidInventory::deserialize);
 
         // set item ID for screens
         if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID)) {
-            Fluid fluid = fluidInventory.getFluidInTank(0).getFluid();
+            Fluid fluid = fluidInventory.getResource(0).getFluid();
             fluidId = BuiltInRegistries.FLUID.getId(fluid);
         }
     }

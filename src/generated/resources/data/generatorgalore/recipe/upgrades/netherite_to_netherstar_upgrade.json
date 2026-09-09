@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:netherite_to_netherstar_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:netherite_to_netherstar_upgrade"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "F": {
-      "item": "minecraft:item_frame"
-    },
-    "I": {
-      "item": "minecraft:wither_skeleton_skull"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "F": "minecraft:item_frame",
+    "I": "minecraft:wither_skeleton_skull",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:netherite_to_netherstar_upgrade"
   }
 }

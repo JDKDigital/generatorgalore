@@ -1,6 +1,7 @@
 {
   "textures": {
-    "frame": "generatorgalore:item/upgrade_frame"
+    "frame": "generatorgalore:block/upgrade_frame",
+    "particle": "#base"
   },
   "elements": [
     {

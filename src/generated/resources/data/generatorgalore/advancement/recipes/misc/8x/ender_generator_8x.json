@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:ender_generator_8x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:ender_generator_8x"
     }
   ],
   "parent": "minecraft:recipes/root",

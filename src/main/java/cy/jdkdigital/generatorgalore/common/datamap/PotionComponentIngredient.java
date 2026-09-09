@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -24,13 +24,13 @@ public class PotionComponentIngredient extends DataComponentIngredient
     public static final MapCodec<PotionComponentIngredient> CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder
                     .group(
-                            HolderSetCodec.create(Registries.ITEM, BuiltInRegistries.ITEM.holderByNameCodec(), false).fieldOf("items").forGetter(PotionComponentIngredient::items),
-                            DataComponentPredicate.CODEC.fieldOf("components").forGetter(PotionComponentIngredient::components)
+                            HolderSetCodec.create(Registries.ITEM, BuiltInRegistries.ITEM.holderByNameCodec(), false).fieldOf("items").forGetter(PotionComponentIngredient::itemSet),
+                            DataComponentPatch.CODEC.fieldOf("components").forGetter(PotionComponentIngredient::components)
                     )
                     .apply(builder, PotionComponentIngredient::new));
 
 
-    public PotionComponentIngredient(HolderSet<Item> items, DataComponentPredicate components) {
+    public PotionComponentIngredient(HolderSet<Item> items, DataComponentPatch components) {
         super(items, components, false);
     }
 
@@ -40,18 +40,18 @@ public class PotionComponentIngredient extends DataComponentIngredient
     }
 
     public static Ingredient of(ItemStack stack) {
-        var builder = DataComponentMap.builder();
+        var builder = DataComponentPatch.builder();
         if (stack.has(DataComponents.POTION_CONTENTS)) {
             builder.set(DataComponents.POTION_CONTENTS, stack.get(DataComponents.POTION_CONTENTS));
         }
-        return of(DataComponentPredicate.allOf(builder.build()), stack.getItem());
+        return of(builder.build(), stack.getItem());
     }
 
-    public static Ingredient of(DataComponentPredicate predicate, ItemLike... items) {
-        return of(predicate, HolderSet.direct(Arrays.stream(items).map(ItemLike::asItem).map(Item::builtInRegistryHolder).toList()));
+    public static Ingredient of(DataComponentPatch patch, ItemLike... items) {
+        return of(patch, HolderSet.direct(Arrays.stream(items).map(ItemLike::asItem).map(Item::builtInRegistryHolder).toList()));
     }
 
-    public static Ingredient of(DataComponentPredicate predicate, HolderSet<Item> items) {
-        return new PotionComponentIngredient(items, predicate).toVanilla();
+    public static Ingredient of(DataComponentPatch patch, HolderSet<Item> items) {
+        return new PotionComponentIngredient(items, patch).toVanilla();
     }
 }

@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:emerald_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:emerald_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:diamond_generator"
-    },
-    "I": {
-      "tag": "c:gems/emerald"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "G": "generatorgalore:diamond_generator",
+    "I": "#c:gems/emerald",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:emerald_generator"
   }
 }

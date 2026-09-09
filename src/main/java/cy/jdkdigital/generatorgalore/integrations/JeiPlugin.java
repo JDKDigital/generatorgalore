@@ -12,7 +12,7 @@ import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.helpers.IJeiHelpers;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.vanilla.IJeiFuelingRecipe;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -22,16 +22,17 @@ import mezz.jei.common.util.RegistryUtil;
 import mezz.jei.library.plugins.vanilla.cooking.fuel.FuelRecipeMaker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -39,30 +40,35 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 @mezz.jei.api.JeiPlugin
 public class JeiPlugin implements IModPlugin
 {
-    private static final ResourceLocation pluginId = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, GeneratorGalore.MODID);
+    private static final Identifier pluginId = Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, GeneratorGalore.MODID);
 
-    public static RecipeType<SolidFuelRecipe> SOLID_FUEL_RECIPE_TYPE = RecipeType.create(GeneratorGalore.MODID, "solid_fuels", SolidFuelRecipe.class);
-    public static RecipeType<FluidFuelRecipe> FLUID_FUEL_RECIPE_TYPE = RecipeType.create(GeneratorGalore.MODID, "fluid_fuels", FluidFuelRecipe.class);
+    public static IRecipeType<SolidFuelRecipe> SOLID_FUEL_RECIPE_TYPE = IRecipeType.create(GeneratorGalore.MODID, "solid_fuels", SolidFuelRecipe.class);
+    public static IRecipeType<FluidFuelRecipe> FLUID_FUEL_RECIPE_TYPE = IRecipeType.create(GeneratorGalore.MODID, "fluid_fuels", FluidFuelRecipe.class);
 
     public JeiPlugin() {
     }
 
     @Nonnull
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return pluginId;
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
-            RecipeType<?> recipeType = generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? FLUID_FUEL_RECIPE_TYPE : SOLID_FUEL_RECIPE_TYPE;
-            registration.addRecipeCatalyst(new ItemStack(generator.getBlockSupplier().get()), recipeType);
+            IRecipeType<?> recipeType = generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? FLUID_FUEL_RECIPE_TYPE : SOLID_FUEL_RECIPE_TYPE;
+            registration.addCraftingStation(recipeType, new ItemStack(generator.getBlockSupplier().get()));
         });
+    }
+
+    static boolean isSourceFluid(Holder<Fluid> fluid) {
+        return fluid.value().defaultFluidState().isSource();
     }
 
     static ItemStack categoryIcon(GeneratorUtil.FuelType fuelType) {
@@ -89,15 +95,13 @@ public class JeiPlugin implements IModPlugin
     static List<SolidFuelMap.SolidFuel> potionList;
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        vanillaFuelRecipes = FuelRecipeMaker.getFuelRecipes(registration.getIngredientManager());
-        foodList = registration.getIngredientManager().getAllItemStacks().stream().filter((stack) -> {
-            FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
-            return foodProperties != null;
-        }).toList();
-        enchantmentList = RegistryUtil.getRegistry(Registries.ENCHANTMENT).holders().map(enchantment -> {
+        vanillaFuelRecipes = FuelRecipeMaker.getFuelRecipes(registration.getIngredientManager(), net.minecraft.world.item.crafting.RecipeType.SMELTING);
+        foodList = registration.getIngredientManager().getAllItemStacks().stream()
+                .filter(stack -> stack.get(DataComponents.FOOD) != null).toList();
+        enchantmentList = RegistryUtil.getRegistry(Registries.ENCHANTMENT).listElements().map(enchantment -> {
             List<ItemStack> books = new ArrayList<>();
             IntStream.range(0, enchantment.value().getMaxLevel()).forEach(
-                i -> books.add(EnchantedBookItem.createForEnchantment(new EnchantmentInstance(enchantment, i + 1)))
+                i -> books.add(EnchantmentHelper.createBook(new EnchantmentInstance(enchantment, i + 1)))
             );
             return books;
         }).flatMap(Collection::stream).toList();
@@ -107,10 +111,12 @@ public class JeiPlugin implements IModPlugin
         GeneratorRegistry.generators.forEach((resourceLocation, generator) -> {
             addGeneratorFuelRecipes(registration, generator, generator.getBlockSupplier().get().asItem().getDefaultInstance(), 1);
             if (generator.has8x()) {
-                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_8x")).getDefaultInstance(), 8);
+                BuiltInRegistries.ITEM.getOptional(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_8x"))
+                        .ifPresent(item -> addGeneratorFuelRecipes(registration, generator, item.getDefaultInstance(), 8));
             }
             if (generator.has64x()) {
-                addGeneratorFuelRecipes(registration, generator, BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_64x")).getDefaultInstance(), 64);
+                BuiltInRegistries.ITEM.getOptional(BuiltInRegistries.BLOCK.getKey(generator.getBlockSupplier().get()).withPath(p -> p + "_64x"))
+                        .ifPresent(item -> addGeneratorFuelRecipes(registration, generator, item.getDefaultInstance(), 64));
             }
         });
     }
@@ -124,9 +130,9 @@ public class JeiPlugin implements IModPlugin
         if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && fluidFuelData == null) {
             var fuelRecipes = new ArrayList<FluidFuelRecipe>();
             if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
-                var fluids = BuiltInRegistries.FLUID.getTag(ModTags.getFluidTag(generator.getFuelTag()));
-                if (fluids.isPresent()) {
-                    List<FluidStack> fluidStacks = fluids.get().stream().map(fluid -> new FluidStack(fluid, 10000)).toList();
+                var fluids = BuiltInRegistries.FLUID.getTagOrEmpty(ModTags.getFluidTag(generator.getFuelTag()));
+                if (fluids.iterator().hasNext()) {
+                    List<FluidStack> fluidStacks = StreamSupport.stream(fluids.spliterator(), false).filter(JeiPlugin::isSourceFluid).map(fluid -> new FluidStack(fluid, 10000)).toList();
                     fuelRecipes.add(new FluidFuelRecipe(fluidStacks, genIngredient, (float) generator.getGenerationRate() * modifier, (float) generator.getConsumptionRate() * consumptionModifier));
                 }
             }
@@ -135,7 +141,7 @@ public class JeiPlugin implements IModPlugin
             // Datamap fluid fuel generator
             var fuelRecipes = new ArrayList<FluidFuelRecipe>();
             fluidFuelData.fuels().forEach(fuel -> {
-                fuelRecipes.add(new FluidFuelRecipe(List.of(fuel.fluid().getStacks()), genIngredient, (float) fuel.generationRate() * modifier, (float) fuel.consumptionRate() * consumptionModifier));
+                fuelRecipes.add(new FluidFuelRecipe(fuel.fluid().fluids().stream().filter(JeiPlugin::isSourceFluid).map(f -> new FluidStack(f, 1000)).toList(), genIngredient, (float) fuel.generationRate() * modifier, (float) fuel.consumptionRate() * consumptionModifier));
             });
             registration.addRecipes(FLUID_FUEL_RECIPE_TYPE, fuelRecipes);
         } else if (solidFuelData != null) {
@@ -149,7 +155,7 @@ public class JeiPlugin implements IModPlugin
             // Standard generator
             var fuelRecipes = new ArrayList<SolidFuelRecipe>();
             vanillaFuelRecipes.forEach(fuelingRecipe -> {
-                fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(fuelingRecipe.getInputs().get(0))), genIngredient, (float) generator.getGenerationRate() * modifier, (int) (fuelingRecipe.getBurnTime() * generator.getConsumptionRate() / consumptionModifier)));
+                fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(fuelingRecipe.getInputs().get(0).getItem())), genIngredient, (float) generator.getGenerationRate() * modifier, (int) (fuelingRecipe.getBurnTime() * generator.getConsumptionRate() / consumptionModifier)));
             });
             registration.addRecipes(SOLID_FUEL_RECIPE_TYPE, fuelRecipes);
         } else {
@@ -158,21 +164,21 @@ public class JeiPlugin implements IModPlugin
                 if (generator.getFuelList() != null) {
                     // Manual fuels item list
                     generator.getFuelList().forEach((itemId, fuel) -> {
-                        fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(BuiltInRegistries.ITEM.get(itemId))), genIngredient, fuel.rate() * modifier, fuel.burnTime() / consumptionModifier));
+                        BuiltInRegistries.ITEM.getOptional(itemId).ifPresent(item -> fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(item)), genIngredient, fuel.rate() * modifier, fuel.burnTime() / consumptionModifier)));
                     });
                 } else if (!generator.getFuelTag().equals(GeneratorUtil.EMPTY_TAG)) {
                     // Item tag
-                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(ModTags.getItemTag(generator.getFuelTag()))), genIngredient, (float) generator.getGenerationRate() * modifier, (int) generator.getConsumptionRate() * consumptionModifier));
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.getItemTag(generator.getFuelTag())).spliterator(), false).map(Holder::value))), genIngredient, (float) generator.getGenerationRate() * modifier, (int) generator.getConsumptionRate() * consumptionModifier));
                 }
             } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
                 foodList.forEach((stack) -> {
                     var rate = GeneratorUtil.calculateFoodGenerationRate(generator, stack);
-                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack.getItem())), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
                 });
             } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
                 enchantmentList.forEach((stack) -> {
                     var rate = GeneratorUtil.calculateEnchantmentGenerationRate(generator, stack);
-                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack)), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
+                    fuelRecipes.add(new SolidFuelRecipe(List.of(Ingredient.of(stack.getItem())), genIngredient, rate.getFirst() * modifier, rate.getSecond() / consumptionModifier));
                 });
             } else if (generator.getFuelType().equals(GeneratorUtil.FuelType.POTION)) {
                 potionList.forEach((fuel) -> {

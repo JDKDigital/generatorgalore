@@ -12,7 +12,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 import java.util.Objects;
 
@@ -61,17 +61,12 @@ public class GeneratorMenu extends AbstractContainer
         {
             @Override
             public int get() {
-                return blockEntity.energyHandler.getEnergyStored();
+                return blockEntity.energyHandler.getAmountAsInt();
             }
 
             @Override
             public void set(int value) {
-                    if (blockEntity.energyHandler.getEnergyStored() > 0) {
-                        blockEntity.energyHandler.extractEnergy(blockEntity.energyHandler.getEnergyStored(), false);
-                    }
-                    if (value > 0) {
-                        blockEntity.energyHandler.receiveEnergy(value, false, true);
-                    }
+                blockEntity.energyHandler.set(value);
             }
         });
 
@@ -81,7 +76,7 @@ public class GeneratorMenu extends AbstractContainer
             {
                 @Override
                 public int get(int i) {
-                    return i == 0 ? blockEntity.fluidId : blockEntity.fluidInventory.getFluidInTank(0).getAmount();
+                    return i == 0 ? blockEntity.fluidId : (int) blockEntity.fluidInventory.getAmountAsLong(0);
                 }
 
                 @Override
@@ -90,12 +85,11 @@ public class GeneratorMenu extends AbstractContainer
                         case 0:
                             blockEntity.fluidId = value;
                         case 1:
-                            FluidStack fluid = blockEntity.fluidInventory.getFluidInTank(0);
-                            if (fluid.isEmpty()) {
-                                blockEntity.fluidInventory.fill(new FluidStack(BuiltInRegistries.FLUID.byId(blockEntity.fluidId), value), IFluidHandler.FluidAction.EXECUTE);
-                            } else {
-                                fluid.setAmount(value);
+                            FluidResource resource = blockEntity.fluidInventory.getResource(0);
+                            if (resource.isEmpty()) {
+                                resource = FluidResource.of(BuiltInRegistries.FLUID.byId(blockEntity.fluidId));
                             }
+                            blockEntity.fluidInventory.set(0, resource, value);
                     }
                 }
 

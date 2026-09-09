@@ -10,7 +10,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -21,7 +21,6 @@ import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.neoforged.neoforge.common.conditions.ConditionalOps;
 import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
 import net.neoforged.neoforge.common.conditions.WithConditions;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,12 +53,12 @@ public class LootDataProvider implements DataProvider
     }
 
     private CompletableFuture<?> run(CachedOutput pOutput, HolderLookup.Provider pProvider) {
-        final Map<ResourceLocation, LootTable> map = Maps.newHashMap();
+        final Map<Identifier, LootTable> map = Maps.newHashMap();
         this.subProviders.forEach((providerEntry) -> {
             providerEntry.provider().apply(pProvider).generate((resourceKey, builder) -> {
-                builder.setRandomSequence(resourceKey.location());
-                if (map.put(resourceKey.location(), builder.setParamSet(providerEntry.paramSet()).build()) != null) {
-                    throw new IllegalStateException("Duplicate loot table " + resourceKey.location());
+                builder.setRandomSequence(resourceKey.identifier());
+                if (map.put(resourceKey.identifier(), builder.setParamSet(providerEntry.paramSet()).build()) != null) {
+                    throw new IllegalStateException("Duplicate loot table " + resourceKey.identifier());
                 }
             });
         });
@@ -76,7 +75,7 @@ public class LootDataProvider implements DataProvider
     public static class LootProvider extends BlockLootSubProvider
     {
         private static final Map<Block, Function<Block, LootTable.Builder>> functionTable = new HashMap<>();
-        private static final Map<ResourceLocation, ICondition> conditions = new HashMap<>();
+        private static final Map<Identifier, ICondition> conditions = new HashMap<>();
 
         private final List<Block> knownBlocks = new ArrayList<>();
 
@@ -88,15 +87,10 @@ public class LootDataProvider implements DataProvider
         protected void generate() {
             GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
                 var base = BuiltInRegistries.BLOCK.getKey(generatorObject.getBlockSupplier().get());
-                dropSelfWhenRegistered(generatorObject.getBlockSupplier().get());
-                dropSelfWhenRegistered(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_8x")));
-                dropSelfWhenRegistered(BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_64x")));
+                dropSelf(generatorObject.getBlockSupplier().get());
+                BuiltInRegistries.BLOCK.getOptional(base.withPath(p -> p + "_8x")).ifPresent(this::dropSelf);
+                BuiltInRegistries.BLOCK.getOptional(base.withPath(p -> p + "_64x")).ifPresent(this::dropSelf);
             });
-        }
-
-        private void dropSelfWhenRegistered(Block block) {
-            dropSelf(block);
-            conditions.put(block.getLootTable().location(), new ItemExistsCondition(BuiltInRegistries.BLOCK.getKey(block)));
         }
 
         @Override

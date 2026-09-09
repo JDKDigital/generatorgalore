@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:copper_to_iron_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:copper_to_iron_upgrade"
     }
   ],
   "parent": "minecraft:recipes/root",

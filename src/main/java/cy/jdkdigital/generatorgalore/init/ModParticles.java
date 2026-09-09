@@ -1,7 +1,7 @@
 package cy.jdkdigital.generatorgalore.init;
 
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
-import cy.jdkdigital.generatorgalore.client.particle.RisingEnchantParticleType;
+import cy.jdkdigital.generatorgalore.common.particle.RisingEnchantParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 

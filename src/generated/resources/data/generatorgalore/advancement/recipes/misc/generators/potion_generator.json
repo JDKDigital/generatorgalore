@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:potion_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:potion_generator"
     }
   ],
   "parent": "minecraft:recipes/root",

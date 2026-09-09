@@ -20,6 +20,6 @@ public class ModBlockEntityTypes
     }
 
     public static <E extends BlockEntity> BlockEntityType<E> createBlockEntityType(BlockEntityType.BlockEntitySupplier<E> factory, Block... blocks) {
-        return BlockEntityType.Builder.of(factory, blocks).build(null);
+        return new BlockEntityType<>(factory, blocks);
     }
 }

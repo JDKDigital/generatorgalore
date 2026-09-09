@@ -26,7 +26,7 @@ abstract class AbstractContainer extends AbstractContainerMenu
             final ItemStack slotStack = slot.getItem();
             returnStack = slotStack.copy();
 
-            final int containerSlots = this.slots.size() - player.getInventory().items.size();
+            final int containerSlots = this.slots.size() - Inventory.INVENTORY_SIZE;
 
             // Move from container to player inventory.
             if (index < containerSlots) {

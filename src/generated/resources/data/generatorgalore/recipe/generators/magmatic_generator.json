@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:magmatic_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:magmatic_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:obsidian_generator"
-    },
-    "I": {
-      "tag": "c:ingots/gold"
-    },
-    "R": {
-      "tag": "c:buckets/lava"
-    }
+    "G": "generatorgalore:obsidian_generator",
+    "I": "#c:ingots/gold",
+    "R": "#c:buckets/lava"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:magmatic_generator"
   }
 }

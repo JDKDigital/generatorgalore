@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:obsidian_to_magmatic_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:obsidian_to_magmatic_upgrade"
     }
   ],
   "parent": "minecraft:recipes/root",

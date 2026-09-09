@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:diamond_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:diamond_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:gold_generator"
-    },
-    "I": {
-      "tag": "c:gems/diamond"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "G": "generatorgalore:gold_generator",
+    "I": "#c:gems/diamond",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:diamond_generator"
   }
 }

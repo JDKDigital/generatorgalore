@@ -12,14 +12,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
@@ -27,6 +26,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,7 +39,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.transfer.item.ItemUtil;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +53,7 @@ public class Generator extends BaseEntityBlock
     public static final MapCodec<Generator> CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder.group(
                     propertiesCodec(),
-                    GeneratorObject.codec(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "generator_codec")).fieldOf("generator").forGetter(generator -> generator.generator),
+                    GeneratorObject.codec(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "generator_codec")).fieldOf("generator").forGetter(generator -> generator.generator),
                     Codec.INT.fieldOf("modifier").forGetter(generator -> generator.modifier)
             )
             .apply(builder, Generator::new)
@@ -77,7 +81,7 @@ public class Generator extends BaseEntityBlock
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> blockEntityType) {
-        return level.isClientSide ? null : createTickerHelper(blockEntityType, generator.getBlockEntityType().get(), GeneratorBlockEntity::tick);
+        return level.isClientSide() ? null : createTickerHelper(blockEntityType, generator.getBlockEntityType().get(), GeneratorBlockEntity::tick);
     }
 
     @Override
@@ -106,24 +110,24 @@ public class Generator extends BaseEntityBlock
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {
-        if (generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && pStack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+    protected InteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {
+        if (!pStack.isEmpty() && generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) && ItemAccess.forStack(pStack).getCapability(Capabilities.Fluid.ITEM) != null) {
             if (FluidUtil.interactWithFluidHandler(pPlayer, pHand, pLevel, pPos, null)) {
                 pPlayer.swing(pHand);
-                return ItemInteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
         if (pLevel.getBlockEntity(pPos) instanceof GeneratorBlockEntity generatorBlockEntity) {
-            if (!pLevel.isClientSide) {
+            if (!pLevel.isClientSide()) {
                 generatorBlockEntity.refreshConnectedTileEntityCache();
                 pPlayer.openMenu(generatorBlockEntity, packetBuffer -> packetBuffer.writeBlockPos(pPos));
             }
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
+            return InteractionResult.SUCCESS;
         }
         return super.useWithoutItem(pState, pLevel, pPos, pPlayer, pHitResult);
     }
@@ -138,12 +142,12 @@ public class Generator extends BaseEntityBlock
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor level, BlockPos pos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos, Direction direction, BlockPos facingPos, BlockState facingState, RandomSource random) {
         BlockEntity generatorTile = level.getBlockEntity(pos);
         if (generatorTile instanceof GeneratorBlockEntity generatorBlockEntity) {
             generatorBlockEntity.refreshConnectedTileEntityCache();
         }
-        return super.updateShape(state, direction, newState, level, pos, facingPos);
+        return super.updateShape(state, level, scheduledTickAccess, pos, direction, facingPos, facingState, random);
     }
 
     @Override
@@ -170,7 +174,7 @@ public class Generator extends BaseEntityBlock
             }
 
             if (random.nextInt(55) == 0) {
-                for (int i = 0; i < level.random.nextInt(2) + 2; ++i) {
+                for (int i = 0; i < level.getRandom().nextInt(2) + 2; ++i) {
                     double d0 = (double) pos.getX() + 0.5D;
                     double d1 = pos.getY();
                     double d2 = (double) pos.getZ() + 0.5D;
@@ -184,16 +188,14 @@ public class Generator extends BaseEntityBlock
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (oldState.getBlock() != newState.getBlock() && !level.isClientSide && level.getBlockEntity(pos) instanceof GeneratorBlockEntity generatorBlockEntity) {
-            // Drop inventory
-            for (int slot = 0; slot < generatorBlockEntity.inventoryHandler.getSlots(); ++slot) {
-                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), generatorBlockEntity.inventoryHandler.getStackInSlot(slot));
+    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof GeneratorBlockEntity generatorBlockEntity) {
+            for (int slot = 0; slot < generatorBlockEntity.inventoryHandler.size(); ++slot) {
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), ItemUtil.getStack(generatorBlockEntity.inventoryHandler, slot));
             }
         }
-        super.onRemove(oldState, level, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override
@@ -202,19 +204,10 @@ public class Generator extends BaseEntityBlock
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos) {
+    public int getAnalogOutputSignal(BlockState pBlockState, Level pLevel, BlockPos pPos, Direction direction) {
         return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(pLevel.getBlockEntity(pPos));
     }
 
-    @Override
-    public void appendHoverText(ItemStack pStack, Item.TooltipContext pContext, List<Component> pTootipComponents, TooltipFlag pTooltipFlag) {
-        super.appendHoverText(pStack, pContext, pTootipComponents, pTooltipFlag);
-
-        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.generation_rate", generator.getGenerationRate() * this.modifier).withStyle(ChatFormatting.BLUE));
-        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.transfer_rate", generator.getTransferRate() * this.modifier).withStyle(ChatFormatting.BLUE));
-        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.max_energy", generator.getBufferCapacity() * this.modifier).withStyle(ChatFormatting.BLUE));
-        pTootipComponents.add(Component.translatable(GeneratorGalore.MODID + ".screen.fuel_type", generator.getFuelType().getSerializedName()).withStyle(ChatFormatting.BLUE));
-    }
 
     public int getModifier() {
         return modifier;

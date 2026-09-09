@@ -12,8 +12,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 public final class ModRecipeTypes
 {
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> SOLID_FUEL = GeneratorGalore.RECIPE_SERIALIZERS.register("solid_fuel", SolidFuelRecipe.Serializer::new);
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> FLUID_FUEL = GeneratorGalore.RECIPE_SERIALIZERS.register("fluid_fuel", FluidFuelRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SolidFuelRecipe>> SOLID_FUEL = GeneratorGalore.RECIPE_SERIALIZERS.register("solid_fuel", () -> SolidFuelRecipe.SERIALIZER);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<FluidFuelRecipe>> FLUID_FUEL = GeneratorGalore.RECIPE_SERIALIZERS.register("fluid_fuel", () -> FluidFuelRecipe.SERIALIZER);
 
     public static DeferredHolder<RecipeType<?>, RecipeType<SolidFuelRecipe>> SOLID_FUEL_TYPE = registerRecipeType("solid_fuel");
     public static DeferredHolder<RecipeType<?>, RecipeType<FluidFuelRecipe>> FLUID_FUEL_TYPE = registerRecipeType("fluid_fuel");

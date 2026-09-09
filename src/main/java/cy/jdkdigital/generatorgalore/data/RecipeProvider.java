@@ -4,156 +4,160 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.conditions.IConditionBuilder;
-import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.NeoForgeConditions;
 
 import java.util.concurrent.CompletableFuture;
 
-public class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider implements IConditionBuilder
+public class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider
 {
-    public RecipeProvider(PackOutput gen, CompletableFuture<HolderLookup.Provider> pRegistries) {
-        super(gen, pRegistries);
+    public RecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+        super(registries, output);
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput pRecipeOutput) {
-        var copperGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "copper"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, copperGenerator.getBlockSupplier().get(), 1)
+    protected void buildRecipes() {
+        RecipeOutput pRecipeOutput = this.output;
+        var copperGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "copper"));
+        shaped(RecipeCategory.MISC, copperGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(Items.FURNACE), has(Items.FURNACE))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_COPPER))
-                .define('G', Ingredient.of(Items.FURNACE))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.INGOTS_COPPER)
+                .define('G', Items.FURNACE)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(copperGenerator.getBlockSupplier().get())), prefixedRecipeId(copperGenerator.getBlockSupplier().get(), "generators/"));
 
-        var ironGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "iron"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ironGenerator.getBlockSupplier().get(), 1)
+        var ironGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "iron"));
+        shaped(RecipeCategory.MISC, ironGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(copperGenerator.getBlockSupplier().get()), has(copperGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_IRON))
+                .define('I', Tags.Items.INGOTS_IRON)
                 .define('G', Ingredient.of(copperGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(ironGenerator.getBlockSupplier().get())), prefixedRecipeId(ironGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ironGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, ironGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(copperGenerator.getBlockSupplier().get()), has(copperGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_IRON))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(ironGenerator.getUpgradeSupplier().get())), prefixedRecipeId(ironGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var goldGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "gold"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, goldGenerator.getBlockSupplier().get(), 1)
+        var goldGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "gold"));
+        shaped(RecipeCategory.MISC, goldGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(ironGenerator.getBlockSupplier().get()), has(ironGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_GOLD))
+                .define('I', Tags.Items.INGOTS_GOLD)
                 .define('G', Ingredient.of(ironGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(goldGenerator.getBlockSupplier().get())), prefixedRecipeId(goldGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, goldGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, goldGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(ironGenerator.getBlockSupplier().get()), has(ironGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_GOLD))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.INGOTS_GOLD)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(goldGenerator.getUpgradeSupplier().get())), prefixedRecipeId(goldGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var culinaryGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "culinary"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, culinaryGenerator.getBlockSupplier().get(), 1)
+        var culinaryGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "culinary"));
+        shaped(RecipeCategory.MISC, culinaryGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(goldGenerator.getBlockSupplier().get()), has(goldGenerator.getBlockSupplier().get()))
                 .pattern("ICI").pattern("IGI").pattern("ERE")
-                .define('I', Ingredient.of(Tags.Items.CROPS))
-                .define('C', Ingredient.of(Items.CAKE))
-                .define('E', Ingredient.of(Tags.Items.EGGS))
+                .define('I', Tags.Items.CROPS)
+                .define('C', Items.CAKE)
+                .define('E', Tags.Items.EGGS)
                 .define('G', Ingredient.of(goldGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(culinaryGenerator.getBlockSupplier().get())), prefixedRecipeId(culinaryGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, culinaryGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, culinaryGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(goldGenerator.getBlockSupplier().get()), has(goldGenerator.getBlockSupplier().get()))
                 .pattern("ICI").pattern("IFI").pattern("ERE")
-                .define('I', Ingredient.of(Tags.Items.CROPS))
-                .define('C', Ingredient.of(Items.CAKE))
-                .define('E', Ingredient.of(Tags.Items.EGGS))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.CROPS)
+                .define('C', Items.CAKE)
+                .define('E', Tags.Items.EGGS)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(culinaryGenerator.getUpgradeSupplier().get())), prefixedRecipeId(culinaryGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var potionGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "potion"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, potionGenerator.getBlockSupplier().get(), 1)
+        var potionGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "potion"));
+        shaped(RecipeCategory.MISC, potionGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(culinaryGenerator.getBlockSupplier().get()), has(culinaryGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("BRB")
-                .define('I', Ingredient.of(Tags.Items.DYED_PINK))
-                .define('B', Ingredient.of(Items.BREWING_STAND))
+                .define('I', Tags.Items.DYED_PINK)
+                .define('B', Items.BREWING_STAND)
                 .define('G', Ingredient.of(culinaryGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(potionGenerator.getBlockSupplier().get())), prefixedRecipeId(potionGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, potionGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, potionGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(culinaryGenerator.getBlockSupplier().get()), has(culinaryGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("BRB")
-                .define('I', Ingredient.of(Tags.Items.DYED_PINK))
-                .define('B', Ingredient.of(Items.BREWING_STAND))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.DYED_PINK)
+                .define('B', Items.BREWING_STAND)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(potionGenerator.getUpgradeSupplier().get())), prefixedRecipeId(potionGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var honeyGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "honey"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, honeyGenerator.getBlockSupplier().get(), 1)
+        var honeyGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "honey"));
+        shaped(RecipeCategory.MISC, honeyGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(culinaryGenerator.getBlockSupplier().get()), has(culinaryGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("BRB")
-                .define('I', Ingredient.of(Items.HONEY_BLOCK))
-                .define('B', Ingredient.of(Items.BUCKET))
+                .define('I', Items.HONEY_BLOCK)
+                .define('B', Items.BUCKET)
                 .define('G', Ingredient.of(culinaryGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(honeyGenerator.getBlockSupplier().get())), prefixedRecipeId(honeyGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, honeyGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, honeyGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(culinaryGenerator.getBlockSupplier().get()), has(culinaryGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("BRB")
-                .define('I', Ingredient.of(Items.HONEY_BLOCK))
-                .define('B', Ingredient.of(Items.BUCKET))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Items.HONEY_BLOCK)
+                .define('B', Items.BUCKET)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(honeyGenerator.getUpgradeSupplier().get())), prefixedRecipeId(honeyGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var diamondGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "diamond"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, diamondGenerator.getBlockSupplier().get(), 1)
+        var diamondGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "diamond"));
+        shaped(RecipeCategory.MISC, diamondGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(goldGenerator.getBlockSupplier().get()), has(goldGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_DIAMOND))
+                .define('I', Tags.Items.GEMS_DIAMOND)
                 .define('G', Ingredient.of(goldGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(diamondGenerator.getBlockSupplier().get())), prefixedRecipeId(diamondGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, diamondGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, diamondGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(goldGenerator.getBlockSupplier().get()), has(goldGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_DIAMOND))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.GEMS_DIAMOND)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(diamondGenerator.getUpgradeSupplier().get())), prefixedRecipeId(diamondGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var emeraldGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "emerald"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, emeraldGenerator.getBlockSupplier().get(), 1)
+        var emeraldGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "emerald"));
+        shaped(RecipeCategory.MISC, emeraldGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(diamondGenerator.getBlockSupplier().get()), has(diamondGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_EMERALD))
+                .define('I', Tags.Items.GEMS_EMERALD)
                 .define('G', Ingredient.of(diamondGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(emeraldGenerator.getBlockSupplier().get())), prefixedRecipeId(emeraldGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, emeraldGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, emeraldGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(diamondGenerator.getBlockSupplier().get()), has(diamondGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_EMERALD))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.GEMS_EMERALD)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(emeraldGenerator.getUpgradeSupplier().get())), prefixedRecipeId(emeraldGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var netheriteGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "netherite"));
+        var netheriteGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "netherite"));
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE),
                         Ingredient.of(diamondGenerator.getBlockSupplier().get()),
@@ -175,128 +179,148 @@ public class RecipeProvider extends net.minecraft.data.recipes.RecipeProvider im
                 .unlocks(getHasName(diamondGenerator.getBlockSupplier().get()), has(diamondGenerator.getBlockSupplier().get()))
                 .save(pRecipeOutput.withConditions(exists(netheriteGenerator.getUpgradeSupplier().get())), prefixedRecipeId(netheriteGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var netherstarGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "netherstar"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, netherstarGenerator.getBlockSupplier().get(), 1)
+        var netherstarGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "netherstar"));
+        shaped(RecipeCategory.MISC, netherstarGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(netheriteGenerator.getBlockSupplier().get()), has(netheriteGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Items.WITHER_SKELETON_SKULL))
+                .define('I', Items.WITHER_SKELETON_SKULL)
                 .define('G', Ingredient.of(netheriteGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(netherstarGenerator.getBlockSupplier().get())), prefixedRecipeId(netherstarGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, netherstarGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, netherstarGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(netheriteGenerator.getBlockSupplier().get()), has(netheriteGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Items.WITHER_SKELETON_SKULL))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Items.WITHER_SKELETON_SKULL)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(netherstarGenerator.getUpgradeSupplier().get())), prefixedRecipeId(netherstarGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var obsidianGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "obsidian"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, obsidianGenerator.getBlockSupplier().get(), 1)
+        var obsidianGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "obsidian"));
+        shaped(RecipeCategory.MISC, obsidianGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(diamondGenerator.getBlockSupplier().get()), has(diamondGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.OBSIDIANS))
+                .define('I', Tags.Items.OBSIDIANS)
                 .define('G', Ingredient.of(diamondGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(obsidianGenerator.getBlockSupplier().get())), prefixedRecipeId(obsidianGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, obsidianGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, obsidianGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(diamondGenerator.getBlockSupplier().get()), has(diamondGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.OBSIDIANS))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.OBSIDIANS)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(obsidianGenerator.getUpgradeSupplier().get())), prefixedRecipeId(obsidianGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var magmaticGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, magmaticGenerator.getBlockSupplier().get(), 1)
+        var magmaticGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "magmatic"));
+        shaped(RecipeCategory.MISC, magmaticGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_GOLD))
+                .define('I', Tags.Items.INGOTS_GOLD)
                 .define('G', Ingredient.of(obsidianGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.BUCKETS_LAVA))
+                .define('R', Tags.Items.BUCKETS_LAVA)
                 .save(pRecipeOutput.withConditions(exists(magmaticGenerator.getBlockSupplier().get())), prefixedRecipeId(magmaticGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, magmaticGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, magmaticGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.INGOTS_GOLD))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.BUCKETS_LAVA))
+                .define('I', Tags.Items.INGOTS_GOLD)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.BUCKETS_LAVA)
                 .save(pRecipeOutput.withConditions(exists(magmaticGenerator.getUpgradeSupplier().get())), prefixedRecipeId(magmaticGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var enchantmentGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "enchantment"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, enchantmentGenerator.getBlockSupplier().get(), 1)
+        var enchantmentGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "enchantment"));
+        shaped(RecipeCategory.MISC, enchantmentGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Items.ENCHANTED_BOOK))
+                .define('I', Items.ENCHANTED_BOOK)
                 .define('G', Ingredient.of(obsidianGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Items.ENCHANTING_TABLE))
+                .define('R', Items.ENCHANTING_TABLE)
                 .save(pRecipeOutput.withConditions(exists(enchantmentGenerator.getBlockSupplier().get())), prefixedRecipeId(enchantmentGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, enchantmentGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, enchantmentGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Items.ENCHANTED_BOOK))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Items.ENCHANTING_TABLE))
+                .define('I', Items.ENCHANTED_BOOK)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Items.ENCHANTING_TABLE)
                 .save(pRecipeOutput.withConditions(exists(enchantmentGenerator.getUpgradeSupplier().get())), prefixedRecipeId(enchantmentGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var enderGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "ender"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, enderGenerator.getBlockSupplier().get(), 1)
+        var enderGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "ender"));
+        shaped(RecipeCategory.MISC, enderGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.ENDER_PEARLS))
+                .define('I', Tags.Items.ENDER_PEARLS)
                 .define('G', Ingredient.of(obsidianGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(enderGenerator.getBlockSupplier().get())), prefixedRecipeId(enderGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, enderGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, enderGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(obsidianGenerator.getBlockSupplier().get()), has(obsidianGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.ENDER_PEARLS))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Tags.Items.STORAGE_BLOCKS_REDSTONE))
+                .define('I', Tags.Items.ENDER_PEARLS)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .save(pRecipeOutput.withConditions(exists(enderGenerator.getUpgradeSupplier().get())), prefixedRecipeId(enderGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
-        var halitosisGenerator = GeneratorRegistry.generators.get(ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "halitosis"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, halitosisGenerator.getBlockSupplier().get(), 1)
+        var halitosisGenerator = GeneratorRegistry.generators.get(Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "halitosis"));
+        shaped(RecipeCategory.MISC, halitosisGenerator.getBlockSupplier().get(), 1)
                 .unlockedBy(getHasName(enderGenerator.getBlockSupplier().get()), has(enderGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IGI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_AMETHYST))
+                .define('I', Tags.Items.GEMS_AMETHYST)
                 .define('G', Ingredient.of(enderGenerator.getBlockSupplier().get()))
-                .define('R', Ingredient.of(Items.END_ROD))
+                .define('R', Items.END_ROD)
                 .save(pRecipeOutput.withConditions(exists(halitosisGenerator.getBlockSupplier().get())), prefixedRecipeId(halitosisGenerator.getBlockSupplier().get(), "generators/"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, halitosisGenerator.getUpgradeSupplier().get(), 1)
+        shaped(RecipeCategory.MISC, halitosisGenerator.getUpgradeSupplier().get(), 1)
                 .unlockedBy(getHasName(enderGenerator.getBlockSupplier().get()), has(enderGenerator.getBlockSupplier().get()))
                 .pattern("III").pattern("IFI").pattern("IRI")
-                .define('I', Ingredient.of(Tags.Items.GEMS_AMETHYST))
-                .define('F', Ingredient.of(Items.ITEM_FRAME))
-                .define('R', Ingredient.of(Items.END_ROD))
+                .define('I', Tags.Items.GEMS_AMETHYST)
+                .define('F', Items.ITEM_FRAME)
+                .define('R', Items.END_ROD)
                 .save(pRecipeOutput.withConditions(exists(halitosisGenerator.getUpgradeSupplier().get())), prefixedRecipeId(halitosisGenerator.getUpgradeSupplier().get(), "upgrades/"));
 
         GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
             var base = BuiltInRegistries.BLOCK.getKey(generatorObject.getBlockSupplier().get());
-            var gen8x = BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_8x"));
-            var gen64x = BuiltInRegistries.BLOCK.get(base.withPath(p -> p + "_64x"));
+            var gen8x = BuiltInRegistries.BLOCK.getOptional(base.withPath(p -> p + "_8x")).orElse(null);
+            var gen64x = BuiltInRegistries.BLOCK.getOptional(base.withPath(p -> p + "_64x")).orElse(null);
+            if (gen8x == null || gen64x == null) {
+                return;
+            }
 
-            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, gen8x, 1)
+            shaped(RecipeCategory.MISC, gen8x, 1)
                     .unlockedBy(getHasName(generatorObject.getBlockSupplier().get()), has(generatorObject.getBlockSupplier().get()))
                     .pattern("III").pattern("IFI").pattern("III")
                     .define('I', Ingredient.of(generatorObject.getBlockSupplier().get()))
-                    .define('F', Ingredient.of(Items.ECHO_SHARD))
+                    .define('F', Items.ECHO_SHARD)
                     .save(pRecipeOutput.withConditions(exists(gen8x)), prefixedRecipeId(gen8x, "8x/"));
 
-            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, gen64x, 1)
+            shaped(RecipeCategory.MISC, gen64x, 1)
                     .unlockedBy(getHasName(gen8x), has(gen8x))
                     .pattern("III").pattern("IFI").pattern("III")
-                    .define('I', Ingredient.of(gen8x))
-                    .define('F', Ingredient.of(Items.CONDUIT))
+                    .define('I', gen8x)
+                    .define('F', Items.CONDUIT)
                     .save(pRecipeOutput.withConditions(exists(gen64x)), prefixedRecipeId(gen64x, "64x/"));
         });
     }
 
-    private static ResourceLocation prefixedRecipeId(ItemLike item, String prefix) {
-        return BuiltInRegistries.ITEM.getKey(item.asItem()).withPath(path ->  prefix + path);
+    private static ResourceKey<Recipe<?>> prefixedRecipeId(ItemLike item, String prefix) {
+        return ResourceKey.create(Registries.RECIPE, BuiltInRegistries.ITEM.getKey(item.asItem()).withPath(path -> prefix + path));
     }
 
-    private static ItemExistsCondition exists(ItemLike item) {
-        return new ItemExistsCondition(BuiltInRegistries.ITEM.getKey(item.asItem()));
+    private static ICondition exists(ItemLike item) {
+        return NeoForgeConditions.itemRegistered(BuiltInRegistries.ITEM.getKey(item.asItem()));
+    }
+
+    public static class Runner extends net.minecraft.data.recipes.RecipeProvider.Runner
+    {
+        public Runner(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+            super(packOutput, registries);
+        }
+
+        @Override
+        protected net.minecraft.data.recipes.RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
+            return new RecipeProvider(registries, output);
+        }
+
+        @Override
+        public String getName() {
+            return "Generator Galore Recipes";
+        }
     }
 }

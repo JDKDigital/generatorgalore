@@ -10,7 +10,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -43,8 +43,8 @@ public class GeneratorGalore
     public static final String MODID = "generatorgalore";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, GeneratorGalore.MODID);
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, GeneratorGalore.MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(GeneratorGalore.MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(GeneratorGalore.MODID);
     public static final DeferredRegister<MenuType<?>> CONTAINER_TYPES = DeferredRegister.create(Registries.MENU, GeneratorGalore.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, GeneratorGalore.MODID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, GeneratorGalore.MODID);
@@ -56,12 +56,12 @@ public class GeneratorGalore
     public static DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = CREATIVE_MODE_TABS.register(MODID, () -> {
         return CreativeModeTab.builder()
                 .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
-                .icon(() -> new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(MODID, "iron_generator"))))
+                .icon(() -> BuiltInRegistries.ITEM.get(Identifier.fromNamespaceAndPath(MODID, "iron_generator")).map(holder -> new ItemStack(holder.value())).orElse(ItemStack.EMPTY))
                 .title(Component.literal("Generator Galore"))
                 .build();
     });
-    public static final DataMapType<Block, FluidFuelMap> FLUID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "fluid_fuel_map"), Registries.BLOCK, FluidFuelMap.CODEC).synced(FluidFuelMap.CODEC, false).build();
-    public static final DataMapType<Block, SolidFuelMap> SOLID_FUEL_MAP = DataMapType.builder(ResourceLocation.fromNamespaceAndPath(MODID, "solid_fuel_map"), Registries.BLOCK, SolidFuelMap.CODEC).synced(SolidFuelMap.CODEC, false).build();
+    public static final DataMapType<Block, FluidFuelMap> FLUID_FUEL_MAP = DataMapType.builder(Identifier.fromNamespaceAndPath(MODID, "fluid_fuel_map"), Registries.BLOCK, FluidFuelMap.CODEC).synced(FluidFuelMap.CODEC, false).build();
+    public static final DataMapType<Block, SolidFuelMap> SOLID_FUEL_MAP = DataMapType.builder(Identifier.fromNamespaceAndPath(MODID, "solid_fuel_map"), Registries.BLOCK, SolidFuelMap.CODEC).synced(SolidFuelMap.CODEC, false).build();
 
     public static final DeferredHolder<IngredientType<?>, IngredientType<PotionComponentIngredient>> POTIOM_INGREDIENT_TYPE = INGREDIENT_TYPES.register("component", () -> new IngredientType<>(PotionComponentIngredient.CODEC));
 
@@ -82,7 +82,7 @@ public class GeneratorGalore
         modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);
     }
 
-    @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = MODID)
+    @EventBusSubscriber(modid = MODID)
     public static class EventHandler
     {
         @SubscribeEvent
@@ -104,17 +104,17 @@ public class GeneratorGalore
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
             GeneratorRegistry.generators.values().forEach(generatorObject -> {
                 event.registerBlockEntity(
-                        Capabilities.ItemHandler.BLOCK,
+                        Capabilities.Item.BLOCK,
                         generatorObject.getBlockEntityType().get(),
                         (myBlockEntity, side) -> myBlockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? null : myBlockEntity.inventoryHandler
                 );
                 event.registerBlockEntity(
-                        Capabilities.EnergyStorage.BLOCK,
+                        Capabilities.Energy.BLOCK,
                         generatorObject.getBlockEntityType().get(),
                         (myBlockEntity, side) -> myBlockEntity.energyHandler
                 );
                 event.registerBlockEntity(
-                        Capabilities.FluidHandler.BLOCK,
+                        Capabilities.Fluid.BLOCK,
                         generatorObject.getBlockEntityType().get(),
                         (myBlockEntity, side) -> myBlockEntity.generator.getFuelType().equals(GeneratorUtil.FuelType.FLUID) ? myBlockEntity.fluidInventory : null
                 );

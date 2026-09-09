@@ -1,25 +1,17 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:potion_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:potion_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:brewing_stand"
-    },
-    "G": {
-      "item": "generatorgalore:culinary_generator"
-    },
-    "I": {
-      "tag": "c:dyed/pink"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "B": "minecraft:brewing_stand",
+    "G": "generatorgalore:culinary_generator",
+    "I": "#c:dyed/pink",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -27,7 +19,6 @@
     "BRB"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:potion_generator"
   }
 }

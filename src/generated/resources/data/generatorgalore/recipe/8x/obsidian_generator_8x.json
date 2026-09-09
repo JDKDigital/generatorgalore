@@ -1,19 +1,15 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:obsidian_generator_8x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:obsidian_generator_8x"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "F": {
-      "item": "minecraft:echo_shard"
-    },
-    "I": {
-      "item": "generatorgalore:obsidian_generator"
-    }
+    "F": "minecraft:echo_shard",
+    "I": "generatorgalore:obsidian_generator"
   },
   "pattern": [
     "III",
@@ -21,7 +17,6 @@
     "III"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:obsidian_generator_8x"
   }
 }

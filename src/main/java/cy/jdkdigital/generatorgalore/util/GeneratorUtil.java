@@ -12,12 +12,14 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -62,7 +64,7 @@ public class GeneratorUtil
             return this.key;
         }
     }
-    public static ResourceLocation EMPTY_TAG = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "empty");
+    public static Identifier EMPTY_TAG = Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, "empty");
     public static String FUEL_SOLID = "SOLID";
     public static String FUEL_FLUID = "FLUID";
     public static String FUEL_FOOD = "FOOD";
@@ -96,18 +98,18 @@ public class GeneratorUtil
         if (blockEntity instanceof GeneratorBlockEntity generatorBlockEntity) {
             CompoundTag tag = generatorBlockEntity.saveWithoutMetadata(level.registryAccess());
 
-            if (generatorBlockEntity.inventoryHandler instanceof ItemStackHandler itemHandler) {
-                itemHandler.setStackInSlot(GeneratorMenu.SLOT_FUEL, ItemStack.EMPTY);
-                itemHandler.setStackInSlot(GeneratorMenu.SLOT_CHARGE, ItemStack.EMPTY);
-            }
+            generatorBlockEntity.inventoryHandler.set(GeneratorMenu.SLOT_FUEL, ItemResource.EMPTY, 0);
+            generatorBlockEntity.inventoryHandler.set(GeneratorMenu.SLOT_CHARGE, ItemResource.EMPTY, 0);
 
             level.setBlockAndUpdate(pos, newGenerator);
-            level.getBlockEntity(pos).loadCustomOnly(tag, level.registryAccess());
+            try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(generatorBlockEntity.problemPath(), GeneratorGalore.LOGGER)) {
+                level.getBlockEntity(pos).loadWithComponents(TagValueInput.create(reporter, level.registryAccess(), tag));
+            }
         }
     }
 
     public static Pair<Float, Integer> calculateFoodGenerationRate(GeneratorObject generator, ItemStack stack) {
-        FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, null);
+        FoodProperties foodProperties = stack.get(DataComponents.FOOD);
         if (foodProperties != null) {
             int value = foodProperties.nutrition();
             float saturation = foodProperties.saturation();
@@ -119,7 +121,7 @@ public class GeneratorUtil
     }
 
     public static Pair<Float, Integer> calculateEnchantmentGenerationRate(GeneratorObject generator, ItemStack stack) {
-        if (stack.isEnchanted() || stack.getItem() instanceof EnchantedBookItem) {
+        if (stack.isEnchanted() || stack.is(Items.ENCHANTED_BOOK)) {
             double totalRF = 0;
             var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
             for(var entry : enchantments.entrySet()) {
@@ -177,7 +179,7 @@ public class GeneratorUtil
                     var stack = PotionContents.createItemStack(item, potion);
                     int burnTime = 0;
                     for (MobEffectInstance mobEffectInstance : stack.get(DataComponents.POTION_CONTENTS).getAllEffects()) {
-                        burnTime += 3 * (1 + mobEffectInstance.getAmplifier()) * (mobEffectInstance.getDuration() * 3) + (potion.getKey().location().getPath().contains("strong_") ? 6000 : 0);
+                        burnTime += 3 * (1 + mobEffectInstance.getAmplifier()) * (mobEffectInstance.getDuration() * 3) + (potion.getKey().identifier().getPath().contains("strong_") ? 6000 : 0);
                     }
                     return new SolidFuelMap.SolidFuel(PotionComponentIngredient.of(stack), 1.0f, burnTime, 8);
                 })

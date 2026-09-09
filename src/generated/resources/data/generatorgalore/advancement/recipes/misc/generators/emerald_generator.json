@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:emerald_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:emerald_generator"
     }
   ],
   "parent": "minecraft:recipes/root",

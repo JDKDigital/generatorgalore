@@ -4,7 +4,7 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
@@ -25,7 +25,7 @@ public class UpgradeItem extends Item
     public InteractionResult useOn(UseOnContext context) {
         if (!context.getLevel().isClientSide()) {
             BlockState state = context.getLevel().getBlockState(context.getClickedPos());
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+            Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             if (blockId.getNamespace().equals(GeneratorGalore.MODID) && blockId.getPath().equals(previousTier + "_generator")) {
                 GeneratorUtil.replaceGenerator(context.getLevel(), context.getClickedPos(), generator);
                 if (!context.getPlayer().isCreative()) {

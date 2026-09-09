@@ -8,9 +8,10 @@ import cy.jdkdigital.generatorgalore.common.block.entity.GeneratorBlockEntity;
 import cy.jdkdigital.generatorgalore.common.container.GeneratorMenu;
 import cy.jdkdigital.generatorgalore.init.ModTags;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -26,7 +27,7 @@ import java.util.function.Supplier;
 
 public class GeneratorObject
 {
-    private final ResourceLocation id;
+    private final Identifier id;
     private Supplier<Block> blockSupplier;
     private Supplier<BlockEntityType<GeneratorBlockEntity>> blockEntityType;
     private Supplier<Item> upgradeSupplier;
@@ -39,12 +40,12 @@ public class GeneratorObject
     private final double consumptionRate;
     private final int bufferCapacity;
     private final boolean hasChargeSlot;
-    private final ResourceLocation fuelTag;
+    private final Identifier fuelTag;
     private final boolean has8x;
     private final boolean has64x;
-    private Map<ResourceLocation, GeneratorCreator.Fuel> fuelList;
+    private Map<Identifier, GeneratorCreator.Fuel> fuelList;
 
-    public GeneratorObject(ResourceLocation id, GeneratorUtil.FuelType fuelType, double generationRate, double transferRate, double consumptionRate, int bufferCapacity, boolean hasChargeSlot, ResourceLocation fuelTag, boolean has8x, boolean has64x) {
+    public GeneratorObject(Identifier id, GeneratorUtil.FuelType fuelType, double generationRate, double transferRate, double consumptionRate, int bufferCapacity, boolean hasChargeSlot, Identifier fuelTag, boolean has8x, boolean has64x) {
         this.id = id;
         this.fuelType = fuelType;
         this.generationRate = generationRate;
@@ -57,7 +58,7 @@ public class GeneratorObject
         this.has64x = has64x;
     }
 
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -133,30 +134,30 @@ public class GeneratorObject
         return hasChargeSlot;
     }
 
-    public ResourceLocation getFuelTag() {
+    public Identifier getFuelTag() {
         return this.fuelTag;
     }
 
-    public static Codec<GeneratorObject> codec(ResourceLocation id) {
+    public static Codec<GeneratorObject> codec(Identifier id) {
         return RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("id").orElse(id).forGetter(GeneratorObject::getId),
+            Identifier.CODEC.fieldOf("id").orElse(id).forGetter(GeneratorObject::getId),
             GeneratorUtil.FuelType.CODEC.fieldOf("fuelType").orElse(GeneratorUtil.FuelType.SOLID).forGetter(GeneratorObject::getFuelType),
             Codec.DOUBLE.fieldOf("generationRate").forGetter(GeneratorObject::getOriginalGenerationRate),
             Codec.DOUBLE.fieldOf("transferRate").forGetter(GeneratorObject::getTransferRate),
             Codec.DOUBLE.fieldOf("consumptionRate").forGetter(GeneratorObject::getConsumptionRate),
             Codec.INT.fieldOf("bufferCapacity").forGetter(GeneratorObject::getBufferCapacity),
             Codec.BOOL.fieldOf("hasChargeSlot").orElse(true).forGetter(GeneratorObject::hasChargeSlot),
-            ResourceLocation.CODEC.fieldOf("fuelTag").orElse(GeneratorUtil.EMPTY_TAG).forGetter(GeneratorObject::getFuelTag),
+            Identifier.CODEC.fieldOf("fuelTag").orElse(GeneratorUtil.EMPTY_TAG).forGetter(GeneratorObject::getFuelTag),
             Codec.BOOL.fieldOf("has8x").orElse(true).forGetter(GeneratorObject::has8x),
             Codec.BOOL.fieldOf("has64x").orElse(true).forGetter(GeneratorObject::has64x)
         ).apply(instance, GeneratorObject::new));
     }
 
-    public void setFuelList(Map<ResourceLocation, GeneratorCreator.Fuel> fuelList) {
+    public void setFuelList(Map<Identifier, GeneratorCreator.Fuel> fuelList) {
         this.fuelList = fuelList;
     }
 
-    public Map<ResourceLocation, GeneratorCreator.Fuel> getFuelList() {
+    public Map<Identifier, GeneratorCreator.Fuel> getFuelList() {
         return fuelList;
     }
 
@@ -168,7 +169,7 @@ public class GeneratorObject
         return has64x;
     }
 
-    public boolean isValidFuelItem(@NotNull ItemStack stack) {
+    public boolean isValidFuelItem(Level level, @NotNull ItemStack stack) {
         var fuelData = getBlockSupplier().get().builtInRegistryHolder().getData(GeneratorGalore.SOLID_FUEL_MAP);
         if (fuelData != null) {
             return !fuelData.fuels().stream().filter(solidFuel -> solidFuel.item().test(stack)).toList().isEmpty();
@@ -178,7 +179,7 @@ public class GeneratorObject
             return stack.is(ModTags.getItemTag(getFuelTag()));
         }
         if (getFuelType().equals(GeneratorUtil.FuelType.FOOD)) {
-            return stack.getItem().getFoodProperties(stack, null) != null;
+            return stack.get(DataComponents.FOOD) != null;
         }
         if (getFuelType().equals(GeneratorUtil.FuelType.ENCHANTMENT)) {
             return !EnchantmentHelper.getEnchantmentsForCrafting(stack).isEmpty();
@@ -190,7 +191,7 @@ public class GeneratorObject
             return getFuelList().containsKey(BuiltInRegistries.ITEM.getKey(stack.getItem()));
         }
 
-        return stack.getBurnTime(RecipeType.SMELTING) > 0;
+        return level != null && stack.getBurnTime(RecipeType.SMELTING, level.fuelValues()) > 0;
     }
 
     public boolean isValidFuelFluid(FluidStack stack) {
@@ -211,7 +212,7 @@ public class GeneratorObject
         if (fuelData != null) {
             var validFuels = fuelData.fuels().stream().filter(solidFuel -> solidFuel.item().test(fuelStack)).toList();
             return validFuels.isEmpty() ?
-                    new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING) * getConsumptionRate())) :
+                    new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING, level.fuelValues()) * getConsumptionRate())) :
                     new Pair<>((float) validFuels.getFirst().generationRate(), (int) (validFuels.getFirst().burnTime() * validFuels.getFirst().consumptionRate()));
         }
 
@@ -226,7 +227,7 @@ public class GeneratorObject
             var fuel = getFuelList().get(BuiltInRegistries.ITEM.getKey(fuelStack.getItem()));
             rate = new Pair<>(fuel.rate() > 0 ? fuel.rate() : (float)getOriginalGenerationRate(), fuel.burnTime());
         } else {
-            rate = new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING) * getConsumptionRate()));
+            rate = new Pair<>((float) getGenerationRate(), (int) (fuelStack.getBurnTime(RecipeType.SMELTING, level.fuelValues()) * getConsumptionRate()));
         }
         return rate;
     }

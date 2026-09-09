@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:gold_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:gold_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:iron_generator"
-    },
-    "I": {
-      "tag": "c:ingots/gold"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "G": "generatorgalore:iron_generator",
+    "I": "#c:ingots/gold",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:gold_generator"
   }
 }

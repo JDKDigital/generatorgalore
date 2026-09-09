@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:copper_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:copper_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "minecraft:furnace"
-    },
-    "I": {
-      "tag": "c:ingots/copper"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "G": "minecraft:furnace",
+    "I": "#c:ingots/copper",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:copper_generator"
   }
 }

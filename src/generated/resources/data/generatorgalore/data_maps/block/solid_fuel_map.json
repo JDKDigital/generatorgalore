@@ -3,8 +3,8 @@
     "generatorgalore:ender_generator": {
       "neoforge:conditions": [
         {
-          "type": "neoforge:item_exists",
-          "item": "generatorgalore:ender_generator"
+          "type": "neoforge:registered",
+          "value": "generatorgalore:ender_generator"
         }
       ],
       "fuels": [
@@ -12,25 +12,21 @@
           "burnTime": 1600,
           "consumptionRate": 1.0,
           "generationRate": 96,
-          "item": {
-            "item": "minecraft:ender_pearl"
-          }
+          "item": "minecraft:ender_pearl"
         },
         {
           "burnTime": 3200,
           "consumptionRate": 1.0,
           "generationRate": 80,
-          "item": {
-            "item": "minecraft:ender_eye"
-          }
+          "item": "minecraft:ender_eye"
         }
       ]
     },
     "generatorgalore:halitosis_generator": {
       "neoforge:conditions": [
         {
-          "type": "neoforge:item_exists",
-          "item": "generatorgalore:halitosis_generator"
+          "type": "neoforge:registered",
+          "value": "generatorgalore:halitosis_generator"
         }
       ],
       "fuels": [
@@ -38,9 +34,7 @@
           "burnTime": 12000,
           "consumptionRate": 1.0,
           "generationRate": 128,
-          "item": {
-            "item": "minecraft:dragon_breath"
-          }
+          "item": "minecraft:dragon_breath"
         }
       ]
     }

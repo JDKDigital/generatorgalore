@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:gold_to_diamond_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:gold_to_diamond_upgrade"
     }
   ],
   "parent": "minecraft:recipes/root",

@@ -7,9 +7,10 @@ import cy.jdkdigital.generatorgalore.init.ModBlockEntityTypes;
 import cy.jdkdigital.generatorgalore.util.GeneratorCreator;
 import cy.jdkdigital.generatorgalore.util.GeneratorObject;
 import cy.jdkdigital.generatorgalore.util.GeneratorUtil;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.jarcontents.JarContents;
 import net.neoforged.neoforgespi.locating.IModFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -25,7 +26,7 @@ import java.util.stream.Stream;
 
 public class GeneratorRegistry
 {
-    public static Map<ResourceLocation, GeneratorObject> generators = new LinkedHashMap<>();
+    public static Map<Identifier, GeneratorObject> generators = new LinkedHashMap<>();
 
     public static void discoverGenerators() {
         try {
@@ -51,7 +52,7 @@ public class GeneratorRegistry
         for (var file : files) {
             JsonObject json;
             InputStreamReader reader = null;
-            ResourceLocation id = null;
+            Identifier id = null;
             GeneratorObject generator = null;
 
             try {
@@ -59,7 +60,7 @@ public class GeneratorRegistry
                 reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
                 json = parser.parse(reader).getAsJsonObject();
                 var name = file.getName().replace(".json", "");
-                id = ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, name);
+                id = Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, name);
 
                 if (json.has("requiredMod") && !ModList.get().isLoaded(json.get("requiredMod").getAsString())) {
                     continue;
@@ -89,36 +90,36 @@ public class GeneratorRegistry
         IModFile modFile = ModList.get().getModFileById(GeneratorGalore.MODID).getFile();
         GeneratorGalore.LOGGER.debug("Loading generator files from " + dataPath + " to " + targetPath);
 
-        Path source = modFile.findResource(dataPath.split("/"));
-        if (!Files.exists(source)) {
+        String prefix = dataPath.endsWith("/") ? dataPath : dataPath + "/";
+        JarContents contents = modFile.getContents();
+        Map<String, byte[]> defaults = new LinkedHashMap<>();
+        contents.visitContent((name, resource) -> {
+            if (name.startsWith(prefix) && name.endsWith(".json") && name.indexOf('/', prefix.length()) < 0) {
+                try {
+                    defaults.put(name.substring(prefix.length()), resource.readAllBytes());
+                } catch (IOException e) {
+                    GeneratorGalore.LOGGER.error("Could not read default generator file: {}", name, e);
+                }
+            }
+        });
+
+        if (defaults.isEmpty()) {
             GeneratorGalore.LOGGER.error("Could not find default generator files at {} in {}", dataPath, modFile.getFilePath());
             return false;
         }
-        return copyFiles(source, targetPath, override);
+        return copyFiles(defaults, targetPath, override);
     }
 
-    private static boolean copyFiles(Path source, Path targetPath, boolean override) {
-        List<Path> sourceFiles;
-        try (Stream<Path> sourceStream = Files.walk(source)) {
-            sourceFiles = sourceStream.filter(f -> f.getFileName().toString().endsWith(".json")).toList();
-        } catch (IOException e) {
-            GeneratorGalore.LOGGER.error("Could not stream source files: {}", source);
-            GeneratorGalore.LOGGER.error(e.getLocalizedMessage());
-            return false;
-        }
-
+    private static boolean copyFiles(Map<String, byte[]> defaults, Path targetPath, boolean override) {
         boolean success = true;
-        for (Path path : sourceFiles) {
-            Path target = Paths.get(targetPath.toString(), path.getFileName().toString());
+        for (Map.Entry<String, byte[]> entry : defaults.entrySet()) {
+            Path target = Paths.get(targetPath.toString(), entry.getKey());
             try {
-                if (override) {
-                    Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
-                } else {
-                    Files.copy(path, target);
+                if (override || !Files.exists(target)) {
+                    Files.write(target, entry.getValue());
                 }
-            } catch (FileAlreadyExistsException e) {
             } catch (IOException e) {
-                GeneratorGalore.LOGGER.error("Could not copy file: {}, Target: {}", path, target, e);
+                GeneratorGalore.LOGGER.error("Could not copy file: {}, Target: {}", entry.getKey(), target, e);
                 success = false;
             }
         }

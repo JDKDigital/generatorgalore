@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:diamond_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:diamond_generator"
     }
   ],
   "parent": "minecraft:recipes/root",

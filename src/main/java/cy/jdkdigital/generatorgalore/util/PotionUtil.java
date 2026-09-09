@@ -4,7 +4,7 @@ import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.util.collection.SetMultiMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -45,7 +45,7 @@ public class PotionUtil
 
         List<Item> basePotions = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
 
-        List<ItemStack> knownPotions = BuiltInRegistries.POTION.holders().map(potion -> {
+        List<ItemStack> knownPotions = BuiltInRegistries.POTION.listElements().map(potion -> {
             List<ItemStack> potions = new ArrayList<>();
             if (potion.value().getEffects().size() > 0) {
                 for (Item input : basePotions) {
@@ -96,11 +96,11 @@ public class PotionUtil
     private static void addModdedBrewingRecipes(Collection<IBrewingRecipe> brewingRecipes, SetMultiMap<String, String> potionMap) {
         for (IBrewingRecipe iBrewingRecipe : brewingRecipes) {
             if (iBrewingRecipe instanceof BrewingRecipe brewingRecipe) {
-                ItemStack[] ingredients = brewingRecipe.getIngredient().getItems();
+                ItemStack[] ingredients = brewingRecipe.getIngredient().items().map(holder -> new ItemStack(holder.value())).toArray(ItemStack[]::new);
                 if (ingredients.length > 0) {
                     Ingredient inputIngredient = brewingRecipe.getInput();
                     ItemStack output = brewingRecipe.getOutput();
-                    ItemStack[] inputs = inputIngredient.getItems();
+                    ItemStack[] inputs = inputIngredient.items().map(holder -> new ItemStack(holder.value())).toArray(ItemStack[]::new);
                     // Add to potion map
                     for (ItemStack input: inputs) {
                         potionMap.put(getUniquePotionName(output), getUniquePotionName(input));

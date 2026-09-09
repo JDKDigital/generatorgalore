@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:netherstar_generator_64x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:netherstar_generator_64x"
     }
   ],
   "parent": "minecraft:recipes/root",

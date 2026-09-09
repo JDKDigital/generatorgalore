@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:netherite_to_netherstar_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:netherite_to_netherstar_upgrade"
     }
   ],
   "parent": "minecraft:recipes/root",

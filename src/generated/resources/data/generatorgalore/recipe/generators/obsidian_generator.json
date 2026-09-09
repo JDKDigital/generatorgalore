@@ -1,22 +1,16 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:obsidian_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:obsidian_generator"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "generatorgalore:diamond_generator"
-    },
-    "I": {
-      "tag": "c:obsidians"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "G": "generatorgalore:diamond_generator",
+    "I": "#c:obsidians",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "III",
@@ -24,7 +18,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:obsidian_generator"
   }
 }

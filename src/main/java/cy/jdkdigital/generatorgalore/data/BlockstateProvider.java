@@ -1,77 +1,127 @@
 package cy.jdkdigital.generatorgalore.data;
 
-import com.google.gson.JsonElement;
+import com.mojang.math.Quadrant;
 import cy.jdkdigital.generatorgalore.GeneratorGalore;
 import cy.jdkdigital.generatorgalore.registry.GeneratorRegistry;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.data.models.model.ModelTemplate;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.client.renderer.block.dispatch.Variant;
+import net.minecraft.client.renderer.block.dispatch.VariantMutator;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-public class BlockstateProvider extends BlockStateProvider
+public class BlockstateProvider extends ModelProvider
 {
-    protected final PackOutput packOutput;
+    private static final TextureSlot FACE = TextureSlot.create("face");
 
-    protected final Map<ResourceLocation, Supplier<JsonElement>> models = new HashMap<>();
-
-    public BlockstateProvider(PackOutput packOutput, ExistingFileHelper exFileHelper) {
-        super(packOutput, GeneratorGalore.MODID, exFileHelper);
-        this.packOutput = packOutput;
+    public BlockstateProvider(PackOutput packOutput) {
+        super(packOutput, GeneratorGalore.MODID);
     }
 
     @Override
-    protected void registerStatesAndModels() {
+    protected Stream<? extends Holder<Block>> getKnownBlocks() {
+        List<Holder<Block>> known = new ArrayList<>();
+        forEachGeneratorBlock(block -> known.add(block.builtInRegistryHolder()));
+        return known.stream();
+    }
+
+    @Override
+    protected Stream<? extends Holder<Item>> getKnownItems() {
+        List<Holder<Item>> known = new ArrayList<>();
+        forEachGeneratorBlock(block -> known.add(block.asItem().builtInRegistryHolder()));
+        return known.stream();
+    }
+
+    @Override
+    protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
             var block = generatorObject.getBlockSupplier().get();
-            makeGeneratorBlock(block, "block/generator_base");
             var baseGen = BuiltInRegistries.BLOCK.getKey(block);
 
-            makeGeneratorBlock(BuiltInRegistries.BLOCK.get(baseGen.withPath(p -> p + "_8x")), "block/generator_base_8x");
-            makeGeneratorBlock(BuiltInRegistries.BLOCK.get(baseGen.withPath(p -> p + "_64x")), "block/generator_base_64x");
+            makeGeneratorBlock(blockModels, block, "block/generator_base");
+            variant(baseGen, "_8x").ifPresent(b -> makeGeneratorBlock(blockModels, b, "block/generator_base_8x"));
+            variant(baseGen, "_64x").ifPresent(b -> makeGeneratorBlock(blockModels, b, "block/generator_base_64x"));
         });
     }
 
-    private void makeGeneratorBlock(Block block, String baseModel) {
-        var generatorParentModel = generatorTextureMap(block, models().withExistingParent(blockTexture(block).toString(), ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, baseModel)));
-        var generatorOnParentModel = generatorOnTextureMap(block, models().withExistingParent(blockTexture(block) + "_on", generatorParentModel.getLocation()));
+    private void makeGeneratorBlock(BlockModelGenerators blockModels, Block block, String baseModel) {
+        Identifier offModel = new ModelTemplate(Optional.of(ggId(baseModel)), Optional.empty(), TextureSlot.SIDE, TextureSlot.TOP, TextureSlot.BOTTOM, FACE)
+                .create(block, offTextures(block), blockModels.modelOutput);
 
-        this.horizontalBlock(block, blockState -> blockState.getValue(BlockStateProperties.LIT) ? generatorOnParentModel : generatorParentModel);
+        Identifier onModel = new ModelTemplate(Optional.of(offModel), Optional.empty(), TextureSlot.FRONT, TextureSlot.TOP)
+                .createWithSuffix(block, "_on", onTextures(block), blockModels.modelOutput);
 
-        this.simpleBlockItem(block, generatorParentModel);
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(block)
+                        .with(PropertyDispatch.initial(BlockStateProperties.LIT)
+                                .select(false, plainVariant(offModel))
+                                .select(true, plainVariant(onModel)))
+                        .with(PropertyDispatch.modify(BlockStateProperties.HORIZONTAL_FACING)
+                                .select(Direction.NORTH, BlockModelGenerators.NOP)
+                                .select(Direction.EAST, VariantMutator.Y_ROT.withValue(Quadrant.R90))
+                                .select(Direction.SOUTH, VariantMutator.Y_ROT.withValue(Quadrant.R180))
+                                .select(Direction.WEST, VariantMutator.Y_ROT.withValue(Quadrant.R270))));
+
+        blockModels.registerSimpleItemModel(block, offModel);
     }
 
-    private BlockModelBuilder generatorTextureMap(Block pBlock, BlockModelBuilder modelBuilder) {
-        return modelBuilder
-                .texture("side", extend(pBlock, "_side"))
-                .texture("top", extend(pBlock, "_top_off"))
-                .texture("bottom", extend(pBlock, "_bottom"))
-                .texture("face", extend(pBlock, "_front"));
+    private TextureMapping offTextures(Block block) {
+        return new TextureMapping()
+                .put(TextureSlot.SIDE, new Material(extend(block, "_side")))
+                .put(TextureSlot.TOP, new Material(extend(block, "_top_off")))
+                .put(TextureSlot.BOTTOM, new Material(extend(block, "_bottom")))
+                .put(FACE, new Material(extend(block, "_front")));
     }
 
-    private BlockModelBuilder generatorOnTextureMap(Block pBlock, BlockModelBuilder modelBuilder) {
-        return modelBuilder
-                .texture("front", ResourceLocation.fromNamespaceAndPath(GeneratorGalore.MODID, "block/generator_on_glow"))
-                .texture("top", extend(pBlock, "_top_on"));
+    private TextureMapping onTextures(Block block) {
+        return new TextureMapping()
+                .put(TextureSlot.FRONT, new Material(ggId("block/generator_on_glow")))
+                .put(TextureSlot.TOP, new Material(extend(block, "_top_on")));
     }
 
-    private ResourceLocation extend(Block pBlock, String suffix) {
-        return blockTexture(pBlock).withPath(p -> p.replace("_8x", "").replace("_64x", "") + suffix);
+    private Identifier extend(Block block, String suffix) {
+        return BuiltInRegistries.BLOCK.getKey(block).withPath(p -> "block/" + p.replace("_8x", "").replace("_64x", "") + suffix);
     }
 
-    private ResourceLocation blockKey(Block block) {
-        return BuiltInRegistries.BLOCK.getKey(block);
+    private Optional<Block> variant(Identifier base, String suffix) {
+        return BuiltInRegistries.BLOCK.getOptional(base.withPath(p -> p + suffix));
     }
 
-    private ResourceLocation itemKey(Item item) {
-        return BuiltInRegistries.ITEM.getKey(item);
+    private void forEachGeneratorBlock(java.util.function.Consumer<Block> action) {
+        GeneratorRegistry.generators.forEach((resourceLocation, generatorObject) -> {
+            var block = generatorObject.getBlockSupplier().get();
+            var baseGen = BuiltInRegistries.BLOCK.getKey(block);
+            action.accept(block);
+            variant(baseGen, "_8x").ifPresent(action);
+            variant(baseGen, "_64x").ifPresent(action);
+        });
+    }
+
+    private static Identifier ggId(String path) {
+        return Identifier.fromNamespaceAndPath(GeneratorGalore.MODID, path);
+    }
+
+    private static MultiVariant plainVariant(Identifier modelLocation) {
+        return new MultiVariant(WeightedList.of(new Variant(modelLocation)));
     }
 }

@@ -1,8 +1,8 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:culinary_generator_8x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:culinary_generator_8x"
     }
   ],
   "parent": "minecraft:recipes/root",

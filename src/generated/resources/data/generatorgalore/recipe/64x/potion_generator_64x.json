@@ -1,19 +1,15 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:potion_generator_64x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:potion_generator_64x"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "F": {
-      "item": "minecraft:conduit"
-    },
-    "I": {
-      "item": "generatorgalore:potion_generator_8x"
-    }
+    "F": "minecraft:conduit",
+    "I": "generatorgalore:potion_generator_8x"
   },
   "pattern": [
     "III",
@@ -21,7 +17,6 @@
     "III"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:potion_generator_64x"
   }
 }

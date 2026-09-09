@@ -1,19 +1,15 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:halitosis_generator_8x"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:halitosis_generator_8x"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "F": {
-      "item": "minecraft:echo_shard"
-    },
-    "I": {
-      "item": "generatorgalore:halitosis_generator"
-    }
+    "F": "minecraft:echo_shard",
+    "I": "generatorgalore:halitosis_generator"
   },
   "pattern": [
     "III",
@@ -21,7 +17,6 @@
     "III"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:halitosis_generator_8x"
   }
 }

@@ -1,13 +1,18 @@
 package cy.jdkdigital.generatorgalore.client.particle;
 
+import cy.jdkdigital.generatorgalore.common.particle.RisingEnchantParticleType;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.*;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.RandomSource;
 
-public class RisingEnchantParticle extends TextureSheetParticle
+public class RisingEnchantParticle extends SingleQuadParticle
 {
-    public RisingEnchantParticle(ClientLevel pLevel, double pX, double pY, double pZ) {
-        super(pLevel, pX, pY, pZ);
+    public RisingEnchantParticle(ClientLevel pLevel, double pX, double pY, double pZ, SpriteSet pSprites) {
+        super(pLevel, pX, pY, pZ, pSprites.get(pLevel.getRandom()));
         this.gravity = 0.75F;
         this.friction = 0.999F;
         this.xd *= 0.8F;
@@ -19,18 +24,19 @@ public class RisingEnchantParticle extends TextureSheetParticle
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+    protected Layer getLayer() {
+        return Layer.OPAQUE;
     }
 
+    @Override
     public float getQuadSize(float pScaleFactor) {
         float f = ((float)this.age + pScaleFactor) / (float)this.lifetime;
         return this.quadSize * (1.0F - f * f);
     }
 
     @Override
-    public int getLightColor(float pPartialTick) {
-        int i = super.getLightColor(pPartialTick);
+    protected int getLightCoords(float pPartialTick) {
+        int i = super.getLightCoords(pPartialTick);
         float f = (float)this.age / (float)this.lifetime;
         f *= f;
         f *= f;
@@ -63,10 +69,8 @@ public class RisingEnchantParticle extends TextureSheetParticle
         }
 
         @Override
-        public Particle createParticle(RisingEnchantParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed) {
-            RisingEnchantParticle particle = new RisingEnchantParticle(pLevel, pX, pY, pZ);
-            particle.pickSprite(this.sprite);
-            return particle;
+        public Particle createParticle(RisingEnchantParticleType pType, ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, RandomSource pRandom) {
+            return new RisingEnchantParticle(pLevel, pX, pY, pZ, this.sprite);
         }
     }
 }

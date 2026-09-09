@@ -1,6 +1,6 @@
 package cy.jdkdigital.generatorgalore.init;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -12,17 +12,17 @@ import java.util.Map;
 
 public class ModTags
 {
-    public static Map<ResourceLocation, TagKey<Item>> itemTagCache = new HashMap<>();
-    public static Map<ResourceLocation, TagKey<Fluid>> fluidTagCache = new HashMap<>();
+    public static Map<Identifier, TagKey<Item>> itemTagCache = new HashMap<>();
+    public static Map<Identifier, TagKey<Fluid>> fluidTagCache = new HashMap<>();
 
-    public static TagKey<Item> getItemTag(ResourceLocation resourceLocation) {
+    public static TagKey<Item> getItemTag(Identifier resourceLocation) {
         if (!itemTagCache.containsKey(resourceLocation)) {
             itemTagCache.put(resourceLocation, ItemTags.create(resourceLocation));
         }
         return itemTagCache.get(resourceLocation);
     }
 
-    public static TagKey<Fluid> getFluidTag(ResourceLocation resourceLocation) {
+    public static TagKey<Fluid> getFluidTag(Identifier resourceLocation) {
         if (!fluidTagCache.containsKey(resourceLocation)) {
             fluidTagCache.put(resourceLocation, FluidTags.create(resourceLocation));
         }

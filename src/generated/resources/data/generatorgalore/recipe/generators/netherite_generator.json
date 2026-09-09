@@ -1,22 +1,15 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:netherite_generator"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:netherite_generator"
     }
   ],
   "type": "minecraft:smithing_transform",
-  "addition": {
-    "item": "minecraft:netherite_ingot"
-  },
-  "base": {
-    "item": "generatorgalore:diamond_generator"
-  },
+  "addition": "minecraft:netherite_ingot",
+  "base": "generatorgalore:diamond_generator",
   "result": {
-    "count": 1,
     "id": "generatorgalore:netherite_generator"
   },
-  "template": {
-    "item": "minecraft:netherite_upgrade_smithing_template"
-  }
+  "template": "minecraft:netherite_upgrade_smithing_template"
 }

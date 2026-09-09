@@ -1,28 +1,18 @@
 {
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "generatorgalore:gold_to_culinary_upgrade"
+      "type": "neoforge:registered",
+      "value": "generatorgalore:gold_to_culinary_upgrade"
     }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "minecraft:cake"
-    },
-    "E": {
-      "tag": "c:eggs"
-    },
-    "F": {
-      "item": "minecraft:item_frame"
-    },
-    "I": {
-      "tag": "c:crops"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "C": "minecraft:cake",
+    "E": "#c:eggs",
+    "F": "minecraft:item_frame",
+    "I": "#c:crops",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "ICI",
@@ -30,7 +20,6 @@
     "ERE"
   ],
   "result": {
-    "count": 1,
     "id": "generatorgalore:gold_to_culinary_upgrade"
   }
 }

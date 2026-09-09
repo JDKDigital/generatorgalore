@@ -3,16 +3,14 @@
     "generatorgalore:magmatic_generator": {
       "neoforge:conditions": [
         {
-          "type": "neoforge:item_exists",
-          "item": "generatorgalore:magmatic_generator"
+          "type": "neoforge:registered",
+          "value": "generatorgalore:magmatic_generator"
         }
       ],
       "fuels": [
         {
           "consumptionRate": 0.4,
-          "fluid": {
-            "tag": "minecraft:lava"
-          },
+          "fluid": "#minecraft:lava",
           "generationRate": 40.0
         }
       ]
